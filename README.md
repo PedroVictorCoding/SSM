@@ -1,5 +1,7 @@
 # SAIL: State Space, Mixture of Experts & Active Parameters Hybrid LM in Rust (Burn)
 
+Model File: .sea (State space, mixture of Experts & Active parameters)
+
 A pure Rust implementation of Selective State Space Models (Mamba), Transformer Causal Attention, and Mixture of Experts (MoE) with dynamic active parameters per token, built on the [Burn](https://burn.dev) deep learning framework.
 
 ## Foundational alignment rule
