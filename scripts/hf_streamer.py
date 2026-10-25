@@ -1,284 +1,440 @@
 #!/usr/bin/env python3
-"""
-Continuous Hugging Face & Open Dataset Ingestion Daemon for SAIL.
-
-Slowly and progressively retrieves datasets from Hugging Face Hub (and curated open sources),
-filters and chunks text samples, and deposits them into `data/incoming/`.
-
-The SAIL continual engine (`sail stream-train`) automatically watches this folder,
-tokenizes newly arrived chunks, and updates the living model using Experience Replay.
-
-Usage Examples:
-  # Stream coding datasets (Python, Rust, algorithms)
-  python3 scripts/hf_streamer.py --topic code --interval 10 --incoming data/incoming
-
-  # Stream scientific and STEM papers / textbooks
-  python3 scripts/hf_streamer.py --topic science --interval 15 --incoming data/incoming
-
-  # Stream conversational & instruction dialogue
-  python3 scripts/hf_streamer.py --topic conversational --interval 12 --incoming data/incoming
-
-  # Stream custom Hugging Face dataset
-  python3 scripts/hf_streamer.py --dataset HuggingFaceFW/fineweb-edu --interval 10
-"""
-
+"""Resumable, bounded text prefetch from human-configured HF datasets/shards."""
 import argparse
+import copy
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
+import hashlib
+import importlib.metadata
 import json
+import logging
 import os
+from pathlib import Path
+import random
 import sys
 import time
-import urllib.parse
-import urllib.request
 import uuid
-from datetime import datetime
 
-# Curated Hugging Face Datasets by Domain
-DOMAIN_DATASETS = {
+LOG = logging.getLogger("hf_streamer")
+MIB = 1024 * 1024
+FORMAT = 1
+PRESETS = {
     "code": [
-        {"dataset": "iamtarun/python_code_instructions_18k_alpaca", "config": "default", "split": "train", "field": "output"},
-        {"dataset": "bigcode/the-stack-v2", "config": "default", "split": "train", "field": "content"},
-        {"dataset": "HuggingFaceTB/smollm-corpus", "config": "python-edu", "split": "train", "field": "text"},
+        {"dataset": "HuggingFaceTB/smollm-corpus", "config": "python-edu", "field": "text"},
+        {"dataset": "iamtarun/python_code_instructions_18k_alpaca", "field": "output"},
     ],
     "science": [
-        {"dataset": "HuggingFaceTB/cosmopedia-v2", "config": "default", "split": "train", "field": "text"},
-        {"dataset": "arxiv-community/arxiv_dataset", "config": "default", "split": "train", "field": "abstract"},
-        {"dataset": "HuggingFaceFW/fineweb-edu", "config": "default", "split": "train", "field": "text"},
+        {"dataset": "HuggingFaceTB/cosmopedia-v2", "field": "text"},
+        {"dataset": "HuggingFaceFW/fineweb-edu", "field": "text"},
     ],
     "conversational": [
-        {"dataset": "HuggingFaceH4/ultrachat_200k", "config": "default", "split": "train_sft", "field": "messages"},
-        {"dataset": "Open-Orca/OpenOrca", "config": "default", "split": "train", "field": "response"},
-    ],
-    "general": [
-        {"dataset": "HuggingFaceFW/fineweb-edu", "config": "default", "split": "train", "field": "text"},
-        {"dataset": "HuggingFaceTB/cosmopedia-v2", "config": "default", "split": "train", "field": "text"},
-        {"dataset": "iamtarun/python_code_instructions_18k_alpaca", "config": "default", "split": "train", "field": "output"},
+        {"dataset": "HuggingFaceH4/ultrachat_200k", "split": "train_sft", "field": "messages"},
+        {"dataset": "Open-Orca/OpenOrca", "field": "response"},
     ],
 }
-
-# Robust offline curated knowledge fallback banks if network is unavailable or rate-limited
-FALLBACK_CORPUS = {
-    "code": [
-        """// Rust memory safety and ownership model
-pub struct BufferPool<T> {
-    storage: Vec<T>,
-    capacity: usize,
-}
-
-impl<T: Clone> BufferPool<T> {
-    pub fn new(capacity: usize) -> Self {
-        Self { storage: Vec::with_capacity(capacity), capacity }
-    }
-    
-    pub fn push(&mut self, item: T) -> Result<(), &'static str> {
-        if self.storage.len() >= self.capacity {
-            return Err("Capacity exceeded");
-        }
-        self.storage.push(item);
-        Ok(())
-    }
-}
-// Ownership XOR mutability guarantees that data races cannot occur at runtime.""",
-
-        """def binary_search(arr: list[int], target: int) -> int:
-    \"\"\"Performs logarithmic O(log N) lookup in a sorted sequence.\"\"\"
-    left, right = 0, len(arr) - 1
-    while left <= right:
-        mid = (left + right) // 2
-        if arr[mid] == target:
-            return mid
-        elif arr[mid] < target:
-            left = mid + 1
-        else:
-            right = mid - 1
-    return -1""",
-
-        """// Fused Associative Parallel Prefix Scan in CubeCL / Rust
-#[cube]
-pub fn parallel_prefix_scan<F: Float>(
-    input: &Array<F>,
-    output: &mut Array<F>,
-    shared_scratch: &mut SharedMemory<F>,
-) {
-    let local_id = UNIT_POS_X;
-    shared_scratch[local_id] = input[local_id];
-    sync_units();
-    
-    let mut stride = 1;
-    while stride < BLOCK_SIZE {
-        let val = if local_id >= stride { shared_scratch[local_id - stride] } else { F::new(0.0) };
-        sync_units();
-        shared_scratch[local_id] = shared_scratch[local_id] + val;
-        sync_units();
-        stride *= 2;
-    }
-    output[local_id] = shared_scratch[local_id];
-}""",
-    ],
-    "science": [
-        """In statistical mechanics and thermodynamics, entropy S represents a measure of microscopic 
-configurations corresponding to a macroscopic state: S = k_B * ln(Omega), where k_B is Boltzmann's 
-constant and Omega is the multiplicity of microstates. The Second Law dictates that the total entropy 
-of an isolated thermodynamic system never decreases over time, defining the thermodynamic arrow of time.""",
-
-        """Quantum electrodynamics (QED) describes the relativistic quantum field theory of electrodynamics. 
-Electrons and positrons interact through the exchange of virtual photons, the gauge bosons of the U(1) 
-gauge symmetry. Feynman diagrams provide a perturbative calculation method for scattering cross-sections 
-and anomalous magnetic moments with unprecedented experimental precision exceeding ten decimal places.""",
-
-        """CRISPR-Cas9 operates as an adaptive immune mechanism in bacteria against bacteriophages. 
-The guide RNA (gRNA) directs the Cas9 endonuclease to introduce a targeted double-strand break in genomic 
-DNA adjacent to a protospacer adjacent motif (PAM). Subsequent cellular repair mechanisms (NHEJ or HDR) 
-enable precise genome engineering and gene knockout.""",
-    ],
-    "conversational": [
-        """User: Can you explain how selective state space models achieve constant memory during inference?
-Assistant: Certainly! Traditional Transformers require caching all past Key-Value states in memory (the KV-cache), 
-which expands linearly O(L) with every new generated token. In contrast, Selective SSMs (like Mamba and SAIL) compress 
-the entire historical context into a fixed-size continuous hidden state vector h_t. When generating the next token, 
-the model simply updates h_t = A * h_{t-1} + B * x_t and computes y_t = C * h_t. Because the state size never grows, 
-the model operates with strictly constant O(1) memory and constant per-token latency regardless of context length.""",
-
-        """User: What is the main defense against catastrophic forgetting in continual learning?
-Assistant: The most effective defense is Experience Replay (or replay buffers). Instead of training purely on 
-the newly arriving data stream, the sampling engine continuously blends fresh data with historical memory windows. 
-In SAIL, our dynamic streaming buffer maintains a watermark, reserving e.g. 30% of each training batch for historical 
-tokens and 70% for newly acquired knowledge. This guarantees that new concepts are acquired while core reasoning 
-remains intact.""",
-    ],
-    "general": [
-        """The Library of Alexandria in Ptolemaic Egypt stood as one of the largest and most significant 
-libraries of the ancient world. Founded in the 3rd century BCE under the patronage of Ptolemy I and II, 
-it functioned as a major intellectual center housing hundreds of thousands of papyrus scrolls spanning 
-astronomy, mathematics, grammar, philosophy, and medicine.""",
-
-        """Modern operating systems implement virtual memory to isolate process address spaces and simulate 
-more memory than physically available. The Translation Lookaside Buffer (TLB) acts as a hardware cache for 
-page table entries, accelerating virtual-to-physical address translation. When a page fault occurs, the 
-kernel retrieves the requested memory frame from secondary storage.""",
-    ],
-}
+PRESETS["general"] = [PRESETS["code"][0], PRESETS["science"][1], PRESETS["conversational"][0]]
 
 
-def fetch_huggingface_rows(dataset_id: str, config: str = "default", split: str = "train", offset: int = 0, limit: int = 5):
-    """
-    Attempts to fetch sample rows from the Hugging Face Datasets Server REST API.
-    Zero external dependencies; uses standard Python urllib.
-    """
-    url = f"https://datasets-server.huggingface.co/rows?dataset={urllib.parse.quote(dataset_id)}&config={urllib.parse.quote(config)}&split={urllib.parse.quote(split)}&offset={offset}&limit={limit}"
-    req = urllib.request.Request(
-        url,
-        headers={"User-Agent": "SAIL-Continual-Ingestion/1.0", "Accept": "application/json"}
-    )
+def atomic_json(path, value):
+    temporary = path.with_name(path.name + "." + uuid.uuid4().hex + ".tmp")
     try:
-        with urllib.request.urlopen(req, timeout=8) as response:
-            if response.status == 200:
-                data = json.loads(response.read().decode("utf-8"))
-                return data.get("rows", [])
-    except Exception:
-        return []
-    return []
+        with temporary.open("x", encoding="utf-8") as file:
+            json.dump(value, file, ensure_ascii=False, allow_nan=False)
+            file.flush()
+            os.fsync(file.fileno())
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
-def extract_text(row_data, preferred_field="text"):
-    """Extracts raw text string from diverse dataset record formats."""
-    row = row_data.get("row", {})
-    if preferred_field in row and isinstance(row[preferred_field], str):
-        return row[preferred_field]
-    for key in ["text", "content", "output", "abstract", "response", "code"]:
-        if key in row and isinstance(row[key], str):
-            return row[key]
-    # Check messages array (dialogue format)
-    if "messages" in row and isinstance(row["messages"], list):
-        turns = []
-        for msg in row["messages"]:
-            role = msg.get("role", "User")
-            content = msg.get("content", "")
-            turns.append(f"{role}: {content}")
-        return "\n".join(turns)
+class DirectoryLock:
+    """OS-held lock, released on exit/crash; no stale PID-file approval needed."""
+    def __init__(self, path):
+        self.path = path
+
+    def __enter__(self):
+        self.file = self.path.open("a+b")
+        self.file.seek(0, 2)
+        if self.file.tell() == 0:
+            self.file.write(b"0")
+            self.file.flush()
+        self.file.seek(0)
+        try:
+            if os.name == "nt":
+                import msvcrt
+                msvcrt.locking(self.file.fileno(), msvcrt.LK_NBLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(self.file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError as error:
+            self.file.close()
+            raise RuntimeError("another downloader owns this incoming directory") from error
+        return self
+
+    def __exit__(self, *_):
+        self.file.close()
+
+
+def normalize_source(source):
+    allowed = {"dataset", "config", "split", "field", "revision", "data_files"}
+    if not isinstance(source, dict) or set(source) - allowed:
+        raise ValueError(f"source must contain only {sorted(allowed)}")
+    result = {"split": "train", "field": "text", **source}
+    if not all(isinstance(result.get(key), str) and result[key] for key in ("dataset", "split", "field")):
+        raise ValueError("source requires nonempty dataset, split and field strings")
+    for key in ("config", "revision"):
+        if key in result and (not isinstance(result[key], str) or not result[key]):
+            raise ValueError(f"source {key} must be a nonempty string")
+    return result
+
+
+def source_key(source):
+    return hashlib.sha256(json.dumps(source, sort_keys=True).encode()).hexdigest()[:20]
+
+
+def extract_text(row, field):
+    content = row.get(field)
+    if isinstance(content, str):
+        return content.strip()
+    if field == "messages" and isinstance(content, list):
+        return "\n".join(f"{msg.get('role', 'user')}: {msg['content']}" for msg in content
+                         if isinstance(msg, dict) and isinstance(msg.get("content"), str)).strip()
     return ""
 
 
-def main():
-    parser = argparse.ArgumentParser(description="SAIL Continuous Hugging Face Dataset Streamer")
-    parser.add_argument("--incoming", default="data/incoming", help="Target incoming directory for SAIL watcher")
-    parser.add_argument("--topic", default="code", choices=["code", "science", "conversational", "general"], help="Topic domain to stream")
-    parser.add_argument("--dataset", default="", help="Optional specific Hugging Face dataset ID override")
-    parser.add_argument("--interval", type=float, default=10.0, help="Seconds between dropped knowledge chunks")
-    parser.add_argument("--max-chunks", type=int, default=0, help="Maximum chunks to stream (0 = run indefinitely)")
-    parser.add_argument("--min-chars", type=int, default=150, help="Minimum character length per chunk")
-    args = parser.parse_args()
+def error_status(error):
+    """Libraries wrap HTTP failures; inspect causes without printing credentials/URLs."""
+    seen = set()
+    while error is not None and id(error) not in seen:
+        seen.add(id(error))
+        response = getattr(error, "response", None)
+        status = getattr(response, "status_code", None) or getattr(error, "code", None)
+        if isinstance(status, int):
+            headers = getattr(response, "headers", None) or getattr(error, "headers", {}) or {}
+            return status, headers.get("Retry-After") or headers.get("retry-after")
+        error = error.__cause__ or error.__context__
+    return None, None
 
-    os.makedirs(args.incoming, exist_ok=True)
-    print(f"=== SAIL Continuous Ingestion Streamer ===")
-    print(f"Target Directory: {args.incoming}")
-    print(f"Active Topic:     {args.topic}")
-    print(f"Interval:         {args.interval}s")
-    if args.dataset:
-        print(f"Dataset Override: {args.dataset}")
-    print(f"Streaming started. Press Ctrl+C to stop.\n")
 
-    chunk_count = 0
-    hf_offset = 0
-    fallback_idx = 0
+def retry_delay(error, attempt, base=2.0, cap=300.0, now=None):
+    _, retry_after = error_status(error)
+    backoff = min(cap, base * 2 ** min(attempt, 20))
+    delay = random.uniform(backoff / 2, backoff)
+    if retry_after:
+        try:
+            requested = float(retry_after)
+        except ValueError:
+            try:
+                requested = parsedate_to_datetime(retry_after).timestamp() - (time.time() if now is None else now)
+            except (ValueError, TypeError, OverflowError):
+                requested = 0.0
+        delay = max(delay, requested)  # Never shorten a server's requested delay.
+    return delay
 
-    sources = DOMAIN_DATASETS.get(args.topic, DOMAIN_DATASETS["general"])
-    if args.dataset:
-        sources = [{"dataset": args.dataset, "config": "default", "split": "train", "field": "text"}]
 
-    source_idx = 0
+def retryable(error):
+    status, _ = error_status(error)
+    if status is not None:
+        return status in (408, 425, 429) or status >= 500
+    if isinstance(error, (ValueError, TypeError, ImportError, FileNotFoundError, PermissionError)):
+        return False
+    return isinstance(error, (OSError, ConnectionError, TimeoutError)) or error.__class__.__module__.split(".")[0] in ("httpx", "requests", "aiohttp", "fsspec", "huggingface_hub")
 
-    while True:
-        chunk_count += 1
-        current_source = sources[source_idx % len(sources)]
-        dataset_id = current_source["dataset"]
-        config = current_source.get("config", "default")
-        split = current_source.get("split", "train")
-        field = current_source.get("field", "text")
 
-        text_content = ""
-        source_label = ""
+class HFReader:
+    def __init__(self, source, saved, cache_dir):
+        from datasets import load_dataset
+        from huggingface_hub import HfApi
+        self.revision = saved.get("revision")
+        builtin = source["dataset"] in ("parquet", "json", "text", "csv", "arrow")
+        if not builtin and not self.revision:
+            self.revision = HfApi().dataset_info(source["dataset"], revision=source.get("revision")).sha
+        kwargs = dict(split=source["split"], streaming=True, cache_dir=str(cache_dir))
+        if source.get("config"):
+            kwargs["name"] = source["config"]
+        if self.revision:
+            kwargs["revision"] = self.revision
+        if "data_files" in source:
+            kwargs["data_files"] = source["data_files"]
+        self.dataset = load_dataset(source["dataset"], **kwargs)
+        if saved.get("cursor") is not None:
+            self.dataset.load_state_dict(copy.deepcopy(saved["cursor"]))
+        self.iterator = iter(self.dataset)
 
-        # Attempt to fetch live from Hugging Face Datasets API
-        rows = fetch_huggingface_rows(dataset_id, config=config, split=split, offset=hf_offset, limit=2)
-        if rows:
-            for r in rows:
-                candidate = extract_text(r, field)
-                if len(candidate.strip()) >= args.min_chars:
-                    text_content = candidate.strip()
-                    source_label = f"hf:{dataset_id}"
-                    hf_offset += 1
-                    break
+    def next(self):
+        return next(self.iterator)
 
-        # Fallback to curated topic knowledge if offline / throttled
-        if not text_content:
-            topic_fallbacks = FALLBACK_CORPUS.get(args.topic, FALLBACK_CORPUS["general"])
-            text_content = topic_fallbacks[fallback_idx % len(topic_fallbacks)]
-            source_label = f"curated:{args.topic}"
-            fallback_idx += 1
+    def cursor(self):
+        return copy.deepcopy(self.dataset.state_dict())
 
-        # Write clean chunk to data/incoming/
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        rand_id = uuid.uuid4().hex[:6]
-        filename = f"chunk_hf_{args.topic}_{timestamp}_{rand_id}.txt"
-        filepath = os.path.join(args.incoming, filename)
 
-        temporary = filepath + ".tmp"
-        with open(temporary, "x", encoding="utf-8") as f:
-            f.write(text_content)
-            f.flush()
-            os.fsync(f.fileno())
-        os.replace(temporary, filepath)
+class Spool:
+    def __init__(self, incoming, sources, version, min_chars, max_record_bytes):
+        self.incoming = Path(incoming).resolve()
+        self.control = self.incoming / ".hf_streamer"
+        self.control.mkdir(parents=True, exist_ok=True)
+        for stale in self.control.glob("state.json.*.tmp"):
+            stale.unlink()
+        self.path = self.control / "state.json"
+        self.sources = sources
+        self.version = version
+        self.filters = {"min_chars": min_chars, "max_record_bytes": max_record_bytes}
+        if self.path.exists():
+            self.state = json.loads(self.path.read_text(encoding="utf-8"))
+            if self.state.get("format") != FORMAT or self.state.get("datasets_version") != version:
+                raise ValueError("downloader state format/datasets version differs; use the original version or a new incoming directory")
+            if self.state.get("filters") != self.filters:
+                raise ValueError("record filters changed; use original filters or a new incoming directory")
+        else:
+            self.state = {"format": FORMAT, "datasets_version": version, "filters": self.filters,
+                          "id": uuid.uuid4().hex, "sources": {}, "pending": None}
+        for source in sources:
+            key = source_key(source)
+            self.state["sources"].setdefault(key, {"source": source, "cursor": None, "rows": 0,
+                                                   "accepted": 0, "sequence": 0, "exhausted": False})
+        self.save()
+        self.recover()
+        (self.control / "chunk.tmp").unlink(missing_ok=True)
 
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] Chunk #{chunk_count:03d} -> {filename} ({len(text_content)} chars | {source_label})")
+    def save(self):
+        atomic_json(self.path, self.state)
 
-        if args.max_chunks > 0 and chunk_count >= args.max_chunks:
-            print(f"\nReached max chunk limit ({args.max_chunks}). Exiting.")
+    def recover(self):
+        pending = self.state["pending"]
+        if pending is None:
+            return
+        target = self.incoming / pending["name"]
+        data = pending["text"].encode("utf-8")
+        if target.exists():
+            if target.read_bytes() != data:
+                raise ValueError(f"published chunk differs from transaction: {target.name}")
+        else:
+            temp = self.control / "chunk.tmp"
+            with temp.open("wb") as file:
+                file.write(data)
+                file.flush()
+                os.fsync(file.fileno())
+            os.replace(temp, target)
+        self.state["pending"] = None
+        self.save()
+
+    def commit(self, key, saved, text):
+        self.state["sources"][key] = saved
+        if text:
+            name = f"hf_{self.state['id']}_{key}_{saved['sequence']:010d}.txt"
+            self.state["pending"] = {"name": name, "text": text}
+        # Cursor and pending bytes are committed together before publication.
+        self.save()
+        self.recover()
+
+    def payload_bytes(self):
+        # Count all local input files, including other feeders; never delete those.
+        return sum(p.stat().st_size for p in self.incoming.iterdir()
+                   if p.is_file() and p.suffix in (".txt", ".jsonl", ".md"))
+
+    def reclaim(self, consumer_run):
+        if not consumer_run:
+            return 0
+        run = Path(consumer_run).resolve()
+        pointer = run / "checkpoint.json"
+        if not pointer.exists():
+            return 0
+        state = json.loads(pointer.read_text(encoding="utf-8"))
+        stream = state.get("stream_file")
+        if not stream:
+            return 0
+        relative = Path(stream)
+        if relative.is_absolute() or ".." in relative.parts:
+            raise ValueError("invalid consumer checkpoint path")
+        receipt = (run / relative).parent / "ingestion.json"
+        if not receipt.exists():
+            LOG.warning("consumer has no ingestion receipt; rebuild trainer; retaining chunks")
+            return 0
+        ack = json.loads(receipt.read_text(encoding="utf-8"))
+        # A stable identity works across WSL paths and native Windows UNC paths.
+        if ack.get("spool_id") != self.state["id"]:
+            raise ValueError("consumer receipt belongs to a different incoming spool")
+        removed = 0
+        prefix = f"hf_{self.state['id']}_"
+        for name in ack["processed_files"]:
+            if Path(name).name != name or not name.startswith(prefix) or not name.endswith(".txt"):
+                continue
+            path = self.incoming / name
+            if path.is_file():
+                removed += path.stat().st_size
+                path.unlink()
+        return removed
+
+
+def collect(reader, saved, source, chunk_bytes, batch_rows, min_chars, max_record_bytes):
+    saved = copy.deepcopy(saved)
+    parts, size = [], 0
+    for _ in range(batch_rows):
+        try:
+            row = reader.next()
+        except StopIteration:
+            saved["exhausted"] = True
             break
+        saved["rows"] += 1
+        if source["field"] not in row:
+            raise ValueError(f"configured field {source['field']!r} is missing from dataset {source['dataset']}")
+        text = extract_text(row, source["field"])
+        if len(text) >= min_chars:
+            byte_count = len(text.encode("utf-8")) + 2
+            if byte_count <= max_record_bytes:
+                parts.append(text + "\n\n")
+                size += byte_count
+                saved["accepted"] += 1
+            else:
+                LOG.warning("dataset=%s skipped oversized record row=%d bytes=%d", source["dataset"], saved["rows"], byte_count)
+        if size >= chunk_bytes:
+            break
+    saved["cursor"] = reader.cursor()
+    saved["revision"] = reader.revision
+    if parts:
+        saved["sequence"] += 1
+    return saved, "".join(parts)
 
-        source_idx += 1
-        time.sleep(args.interval)
+
+def run(args, sources, version, reader_factory=HFReader):
+    incoming = Path(args.incoming).resolve()
+    incoming.mkdir(parents=True, exist_ok=True)
+    control = incoming / ".hf_streamer"
+    control.mkdir(exist_ok=True)
+    with DirectoryLock(control / "lock"):
+        spool = Spool(incoming, sources, version, args.min_chars, args.max_record_bytes)
+        readers, errors, retry_at = {}, {}, {}
+        emitted, last_source = 0, -1
+        while True:
+            reclaimed = spool.reclaim(args.consumer_run)
+            if reclaimed:
+                LOG.info("reclaimed %d checkpointed input bytes", reclaimed)
+            active = [(i, source) for i, source in enumerate(sources)
+                      if not spool.state["sources"][source_key(source)]["exhausted"]]
+            if not active:
+                LOG.info("all configured sources exhausted; no automatic dataset restart")
+                return
+            # Reserve for the worst-case final record before touching the network.
+            if spool.payload_bytes() + args.chunk_bytes + args.max_record_bytes > args.prefetch_bytes:
+                LOG.info("prefetch full; waiting for checkpoint-backed ingestion (budget %.1f MiB)", args.prefetch_bytes / MIB)
+                if args.once:
+                    return
+                time.sleep(args.poll_seconds)
+                continue
+            available = [(i, source) for i, source in active if retry_at.get(source_key(source), 0) <= time.monotonic()]
+            if not available:
+                time.sleep(min(args.poll_seconds, max(0.01, min(retry_at.values()) - time.monotonic())))
+                continue
+            index, source = next(((i, s) for i, s in available if i > last_source), available[0])
+            last_source = index
+            key = source_key(source)
+            saved = spool.state["sources"][key]
+            try:
+                if key not in readers:
+                    readers[key] = reader_factory(source, saved, control / "cache")
+                updated, text = collect(readers[key], saved, source, args.chunk_bytes, args.batch_rows,
+                                        args.min_chars, args.max_record_bytes)
+            except Exception as error:
+                readers.pop(key, None)  # Reopen from the last durable cursor, including lost partial batches.
+                if not retryable(error):
+                    status, _ = error_status(error)
+                    raise RuntimeError(f"dataset={source['dataset']} failed ({type(error).__name__}, HTTP {status}); check source/config/split/access; no fallback data written") from error
+                attempt = errors.get(key, 0)
+                if attempt >= args.max_retries:
+                    raise RuntimeError(f"dataset={source['dataset']} exhausted {args.max_retries} retries; progress preserved, no fallback data written") from error
+                delay = retry_delay(error, attempt)
+                errors[key] = attempt + 1
+                retry_at[key] = time.monotonic() + delay
+                LOG.warning("dataset=%s network failure %s HTTP=%s; retry %d/%d in %.1fs", source["dataset"], type(error).__name__, error_status(error)[0], attempt+1, args.max_retries, delay)
+                continue
+            spool.commit(key, updated, text)
+            errors[key] = 0
+            retry_at.pop(key, None)
+            if updated["exhausted"]:
+                readers.pop(key, None)
+            if text:
+                emitted += 1
+                LOG.info("hf:%s revision=%s rows=%d accepted=%d chunk=%d bytes=%d queued=%.1f MiB", source["dataset"], updated.get("revision"), updated["rows"], updated["accepted"], updated["sequence"], len(text.encode("utf-8")), spool.payload_bytes()/MIB)
+                if args.max_chunks and emitted >= args.max_chunks:
+                    return
+            elif updated["rows"] > saved["rows"]:
+                LOG.warning("dataset=%s batch had no eligible text; rows scanned=%d (check filters)", source["dataset"], updated["rows"])
+            if args.interval:
+                time.sleep(args.interval)
+
+
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--incoming", default="data/incoming")
+    parser.add_argument("--topic", choices=tuple(PRESETS), default="code")
+    parser.add_argument("--dataset", help="Explicit Hub dataset, or parquet/json/text/csv with --data-files")
+    parser.add_argument("--config")
+    parser.add_argument("--split", default="train")
+    parser.add_argument("--field", default="text")
+    parser.add_argument("--revision")
+    parser.add_argument("--data-files", nargs="+", help="Human-selected shard URLs or local files")
+    parser.add_argument("--sources", type=Path, help="JSON array of human-configured source specifications")
+    parser.add_argument("--consumer-run", help="Trainer run whose committed replay permits removal of this downloader's chunks")
+    parser.add_argument("--prefetch-mib", type=float, default=256)
+    parser.add_argument("--chunk-mib", type=float, default=4)
+    parser.add_argument("--max-record-mib", type=float, default=1)
+    parser.add_argument("--batch-rows", type=int, default=2048, help="Maximum rows per local commit, not API request count")
+    parser.add_argument("--min-chars", type=int, default=150)
+    parser.add_argument("--interval", type=float, default=0, help="Optional pause between bulk batches")
+    parser.add_argument("--poll-seconds", type=float, default=5)
+    parser.add_argument("--max-retries", type=int, default=8)
+    parser.add_argument("--max-chunks", type=int, default=0, help="Published chunks this invocation; 0 = unlimited")
+    parser.add_argument("--once", action="store_true", help="Stop when prefetch budget is full (or sources exhausted)")
+    args = parser.parse_args(argv)
+    import math
+    numbers = [args.prefetch_mib, args.chunk_mib, args.max_record_mib, args.interval, args.poll_seconds]
+    if not all(math.isfinite(value) for value in numbers) or min(numbers[:3]) <= 0 or args.interval < 0 or args.poll_seconds <= 0 or args.batch_rows <= 0 or min(args.min_chars, args.max_chunks, args.max_retries) < 0:
+        parser.error("sizes, batch rows and polling must be positive; counts and interval must be nonnegative")
+    args.prefetch_bytes = int(args.prefetch_mib * MIB)
+    args.chunk_bytes = int(args.chunk_mib * MIB)
+    args.max_record_bytes = int(args.max_record_mib * MIB)
+    if min(args.prefetch_bytes, args.chunk_bytes, args.max_record_bytes) < 1:
+        parser.error("sizes must represent at least one byte")
+    if args.prefetch_bytes < args.chunk_bytes + args.max_record_bytes:
+        parser.error("prefetch budget must hold chunk-mib + max-record-mib")
+    if args.sources and args.dataset:
+        parser.error("choose --sources or --dataset")
+    if not args.dataset and any((args.config, args.revision, args.data_files)):
+        parser.error("--config, --revision and --data-files require --dataset")
+    if args.sources:
+        sources = json.loads(args.sources.read_text(encoding="utf-8"))
+    elif args.dataset:
+        source = {"dataset": args.dataset, "split": args.split, "field": args.field}
+        source.update({key: value for key, value in {"config": args.config, "revision": args.revision, "data_files": args.data_files}.items() if value is not None})
+        sources = [source]
+    else:
+        sources = PRESETS[args.topic]
+    if not isinstance(sources, list) or not sources:
+        parser.error("sources must be a nonempty JSON array")
+    sources = [normalize_source(source) for source in sources]
+    if len({source_key(source) for source in sources}) != len(sources):
+        parser.error("duplicate sources")
+    return args, sources
+
+
+def main():
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    try:
+        args, sources = parse_args()
+        version = importlib.metadata.version("datasets")
+        run(args, sources, version)
+    except importlib.metadata.PackageNotFoundError:
+        LOG.error("install dependencies: python3 -m pip install -r scripts/requirements-hf.txt")
+        return 1
+    except KeyboardInterrupt:
+        LOG.info("stopped; restart with the same incoming directory to resume committed progress")
+        return 0
+    except Exception as error:
+        # No traceback: upstream exceptions may contain signed URLs or tokens.
+        LOG.error("%s", error)
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
-    main()
-
+    sys.exit(main())

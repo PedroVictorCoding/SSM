@@ -94,3 +94,25 @@ fn test_incoming_directory_watcher_ingestion() {
 
     let _ = fs::remove_dir_all(&test_dir);
 }
+
+#[test]
+fn test_ingestion_receipt_only_acknowledges_successful_tokenization() {
+    let dir = std::env::temp_dir().join(format!("sail-ingestion-receipt-{}", std::process::id()));
+    fs::create_dir_all(dir.join(".hf_streamer")).unwrap();
+    fs::write(
+        dir.join(".hf_streamer/state.json"),
+        r#"{"id":"portable-spool-id"}"#,
+    )
+    .unwrap();
+    fs::write(dir.join("valid.txt"), "abcabc").unwrap();
+    fs::write(dir.join("unknown.txt"), "🚀").unwrap();
+    let tok = Tokenizer::Char(CharTokenizer::from_text("abc"));
+    let dataset = StreamDataset::new(Vec::new(), StreamConfig::default());
+    let mut watcher = IncomingDirectoryWatcher::new(&dir).unwrap();
+    assert_eq!(watcher.scan_and_ingest(&dataset, &tok), 6);
+    let receipt = watcher.ingestion_receipt();
+    assert_eq!(receipt["spool_id"], "portable-spool-id");
+    assert_eq!(receipt["processed_files"], serde_json::json!(["valid.txt"]));
+    assert!(dir.join("unknown.txt").exists());
+    fs::remove_dir_all(dir).unwrap();
+}

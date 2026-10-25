@@ -76,6 +76,10 @@ checkpoints remain available. Do not resume a checkpoint with non-finite weights
 
 ## Streaming and concurrent inference
 
+To download larger batches before and during training, use the resumable,
+disk-bounded feeder in [HF_STREAMING.md](HF_STREAMING.md). `stream-train` watches
+local files; downloading remains a separate human-configured process.
+
 Use `stream-train --initial-data PATH --incoming DIR --out NEW_RUN` with the same
 model/training flags. The initial replay buffer reserves a frozen validation tail;
 `--validation-data PATH` supplies a separate held-out corpus instead. Without enough

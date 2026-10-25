@@ -193,6 +193,20 @@ pub struct IncomingDirectoryWatcher {
 }
 
 impl IncomingDirectoryWatcher {
+    /// Bound the producer's cleanup receipt to a spool identity, portable between
+    /// a WSL downloader and a native Windows trainer viewing the same directory.
+    pub fn ingestion_receipt(&self) -> serde_json::Value {
+        let spool_id = fs::read(self.incoming_dir.join(".hf_streamer/state.json"))
+            .ok()
+            .and_then(|bytes| serde_json::from_slice::<serde_json::Value>(&bytes).ok())
+            .and_then(|state| {
+                state
+                    .get("id")
+                    .and_then(|id| id.as_str())
+                    .map(str::to_owned)
+            });
+        serde_json::json!({"spool_id": spool_id, "processed_files": self.processed_files()})
+    }
     pub fn processed_files(&self) -> Vec<PathBuf> {
         let mut names: Vec<_> = self
             .processed_files
@@ -239,7 +253,18 @@ impl IncomingDirectoryWatcher {
                 if ext == "txt" || ext == "jsonl" || ext == "md" {
                     if let Ok(content) = fs::read_to_string(&path) {
                         if !content.trim().is_empty() {
-                            let count = dataset.append_text(&content, tokenizer);
+                            let tokens = match tokenizer.encode(&content) {
+                                Ok(tokens) if !tokens.is_empty() => tokens,
+                                _ => {
+                                    eprintln!(
+                                        "[Stream Ingest] No tokens from {}; retaining file without acknowledgement (check tokenizer coverage)",
+                                        path.display()
+                                    );
+                                    continue;
+                                }
+                            };
+                            let count = tokens.len();
+                            dataset.append_tokens(&tokens);
                             new_tokens_count += count;
                             println!(
                                 "[Stream Ingest] Added {} tokens from {}",

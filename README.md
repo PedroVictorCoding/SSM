@@ -184,6 +184,10 @@ cargo run --release -- bench --seq-lens 64,128,256 --run runs/moe_hybrid
 
 ### 6. Continual Online Streaming Training
 Train progressively on incoming data streams with Experience Replay:
+
+For Hugging Face downloads, use the [bulk prefetch workflow](docs/HF_STREAMING.md):
+larger local batches, resumable per-dataset cursors, bounded disk prefetch and
+checkpoint-backed cleanup. The example feeder below only emits bundled examples.
 ```bash
 # Start background online streaming trainer
 cargo run --release -- stream-train \

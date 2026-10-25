@@ -40,3 +40,6 @@ __pycache__/
 # Data folders
 /data/incoming/
 /data/incoming_gpu/
+/data/hf_bulk_*/
+/.venv-hf/
+**/.hf_streamer/

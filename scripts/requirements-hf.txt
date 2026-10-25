@@ -1,0 +1,2 @@
+# Pin iterator-state format for reproducible resume. Python 3.10+.
+datasets==4.8.4

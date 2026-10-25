@@ -83,6 +83,10 @@ Image-text pairs, multi-frame video sequences, and visual question answering for
 
 When using the `scripts/hf_streamer.py` background ingester:
 
+See [bulk prefetch and resume instructions](HF_STREAMING.md). The feeder now uses
+shard streaming, durable per-source cursors, bounded local batches, and checkpoint
+receipts for cleanup. It does not substitute bundled fallback examples on errors.
+
 1. **Curriculum Scheduling by Mode / Task**:
    - **Coding Sessions**: Set `--topic code` to stream from `smollm-corpus (python-edu)` and `the-stack-v2`.
    - **Science Sessions**: Set `--topic science` to stream from `cosmopedia-v2` and `arxiv_dataset`.

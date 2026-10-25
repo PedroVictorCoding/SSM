@@ -271,6 +271,13 @@ fn save_checkpoint<B: AutodiffBackend, O: Optimizer<HybridLm<B>, B>>(
         let mut snapshot = dataset.snapshot();
         snapshot.processed_files = watcher.map(|w| w.processed_files()).unwrap_or_default();
         fs::write(dir.join("stream.json"), serde_json::to_vec(&snapshot)?)?;
+        if let Some(watcher) = watcher {
+            // Published only when checkpoint.json commits this entire generation.
+            fs::write(
+                dir.join("ingestion.json"),
+                serde_json::to_vec(&watcher.ingestion_receipt())?,
+            )?;
+        }
         fs::write(dir.join("validation.json"), serde_json::to_vec(validation)?)?;
         (
             Some(format!("{relative}/stream.json")),
