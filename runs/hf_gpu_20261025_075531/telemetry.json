@@ -1,0 +1,6 @@
+{
+  "active_params_per_token": 280256,
+  "backend": "wgpu",
+  "total_params": 575168,
+  "training_mode": "streaming"
+}

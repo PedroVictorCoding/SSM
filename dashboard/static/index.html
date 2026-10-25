@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Live training metrics and architecture for your SSM language models.">
+  <title>SSM Observatory</title><link rel="stylesheet" href="/style.css">
+  <script src="/graph.js" defer></script><script src="/app.js" defer></script>
+</head>
+<body>
+  <aside>
+    <a class="brand" href="/" aria-label="SSM Observatory home"><span class="brand-icon">◈</span><span>SSM<span class="brand-sub">OBSERVATORY</span></span></a>
+    <div class="sidebar-label">WORKSPACE</div><a class="nav active" href="#overview">◉ <span>Training overview</span></a><a class="nav" href="#architecture">⌘ <span>Model architecture</span></a><a class="nav" href="#connections">⋈ <span>Live connections</span></a><a class="nav" href="#samples">≋ <span>Generated samples</span></a>
+    <div class="sidebar-label runs-label">EXPERIMENTS <span id="run-count">0</span></div>
+    <div id="runs" aria-label="Training runs"></div>
+    <div class="sidebar-bottom"><span class="dot"></span> Local workspace<div>Rust · Burn · Selective SSM</div></div>
+  </aside>
+  <main id="overview">
+    <header><div class="breadcrumb">Workspace <span>/</span> Experiments <span>/</span> <b id="crumb">—</b></div><div id="connection" role="status">Connecting…</div></header>
+    <div class="page-title"><div><div class="eyebrow">TRAINING OBSERVATORY</div><h1 id="run-title">Your model, in motion.</h1><p>Inside the learning process. Every step, every signal.</p></div><button id="pause" type="button">Ⅱ Pause updates</button></div>
+    <div id="notice" role="status" hidden></div>
+    <section class="run-strip"><div><span class="phase" id="phase">Waiting</span><span id="model-label">Selective state space model</span></div><span class="mono" id="step-label">STEP — / —</span><div class="progress"><div id="progress-bar"></div></div></section>
+    <section class="stats" aria-label="Training statistics">
+      <article><div class="stat-label">TRAINING LOSS <span>↘</span></div><div class="stat-value mint" id="train-loss">—</div><div class="stat-foot" id="loss-change">Waiting for metrics</div></article>
+      <article><div class="stat-label">VALIDATION LOSS <span>◎</span></div><div class="stat-value" id="val-loss">—</div><div class="stat-foot" id="val-best">At the next evaluation</div></article>
+      <article><div class="stat-label">THROUGHPUT <span>ϟ</span></div><div class="stat-value" id="throughput">—</div><div class="stat-foot">tokens / second · last training window</div></article>
+      <article><div class="stat-label">ELAPSED TIME <span>◷</span></div><div class="stat-value" id="elapsed">—</div><div class="stat-foot" id="eta">ETA unavailable</div></article>
+    </section>
+    <section class="charts"><article class="panel loss-panel"><div class="panel-heading"><div><h2>Learning curve</h2><p>Cross-entropy loss · lower is better</p></div><div class="legend"><span class="mint-key">Training</span><span class="purple-key">Validation</span></div></div><div class="chart-wrap"><canvas id="loss-chart" aria-label="Training and validation loss by step" role="img"></canvas><div class="chart-tip" id="chart-tip" hidden></div></div><div class="chart-footer"><span>OPTIMIZER STEPS</span><label><input id="smooth" type="checkbox"> Smooth training curve</label></div></article>
+    <article class="panel schedule-panel"><div class="panel-heading"><div><h2>Learning rate</h2><p>Linear warmup → cosine decay</p></div></div><div id="lr-value" class="lr-value">—</div><canvas id="lr-chart" aria-label="Recorded learning rate by step" role="img"></canvas><div class="schedule-details" id="schedule-details"></div></article></section>
+    <section class="panel architecture" id="architecture"><div class="panel-heading"><div><h2>Inside the network <span class="tag">ARCHITECTURE</span></h2><p>Configured topology · select a block to explore</p></div><span class="mono" id="params">Parameter counts unavailable</span></div><div class="network-scroll"><div id="network" class="network"></div></div><div class="network-detail" id="network-detail">Select a layer to inspect its configuration.</div><div class="architecture-footer"><div><span class="mint-key">Mamba / SSM</span><span class="purple-key">Causal attention</span></div><span>Configuration view · no activation or routing telemetry</span></div></section>
+    <section class="panel connection-panel" id="connections">
+      <div class="panel-heading"><div><h2>Live connections <span class="tag">NODES + WEIGHTS</span></h2><p id="graph-status">Waiting for a neural capture.</p></div><span id="graph-step" class="mono">—</span></div>
+      <div class="neural-tools"><input id="graph-search" type="search" placeholder="Find a layer, projection, expert…" aria-label="Filter connection tensors"><select id="graph-tensor" aria-label="Connection tensor"></select><select id="graph-mode" aria-label="Connection color"><option value="weights">Color by weight</option><option value="changes">Color by change</option></select></div>
+      <div class="graph-controls"><label>Row start <input id="graph-row" type="number" min="0" value="0" step="16"></label><label>Column start <input id="graph-column" type="number" min="0" value="0" step="16"></label><button id="graph-prev" type="button">← Previous weights</button><button id="graph-next" type="button">Next weights →</button><button id="graph-clear" type="button">Clear selection</button></div>
+      <canvas id="connection-canvas" tabindex="0" role="img" aria-label="Live parameter connections. Hover or click nodes and edges to inspect them; use tensor and range controls to browse all captured weights."></canvas>
+      <div id="graph-info" class="graph-info mono" role="status">Hover a node or connection. Click to keep it selected as training updates.</div>
+      <div class="architecture-footer"><span id="graph-range">No weights available</span><span class="purple-key">Negative</span><span class="mint-key">Positive · white marks changed weights</span></div>
+      <p class="graph-note">Each matrix edge is one captured weight; nodes identify its row and column channels. Vectors show individual parameter nodes. Browse every tensor and range. This parameter view does not measure individual neuron activations.</p>
+    </section>
+    <section class="panel neural-panel" id="neural"><div class="panel-heading"><div><h2>The living tensors <span class="tag">MEASURED VALUES</span></h2><p id="neural-status">Waiting for a neural snapshot. Start the updated trainer to enable this view.</p></div><span class="mono" id="neural-step">—</span></div>
+      <div class="neural-tools"><input id="tensor-search" type="search" placeholder="Find a tensor, layer, expert…" aria-label="Filter parameter tensors"><select id="tensor-select" aria-label="Parameter tensor"></select><select id="neural-mode" aria-label="Neural display mode"><option value="weights">Weights</option><option value="changes">Change since previous capture</option><option value="activations">Layer output activations</option></select></div>
+      <div class="neural-grid"><div class="heatmap-area"><canvas id="heatmap" role="img" aria-label="Individual neural values heatmap"></canvas><div id="cell-info" class="mono" role="status">Hover a cell to see its exact value and tensor index.</div><div class="heatmap-pagination"><button id="prev-page" type="button">← Previous</button><span id="page-info" class="mono">—</span><button id="next-page" type="button">Next →</button></div></div><div class="tensor-details"><h3 id="tensor-name">No tensor selected</h3><dl id="tensor-stats"></dl><div class="color-scale"></div><div class="scale-labels"><span>Negative</span><span>0</span><span>Positive</span></div><p id="capture-note">Each cell is a measured scalar. All parameter tensors are captured; activations probe the last token of the first sequence.</p></div></div>
+    </section>
+    <section class="bottom-grid"><article class="panel" id="samples"><div class="panel-heading"><div><h2>A voice taking shape</h2><p>Text sampled during validation</p></div><select id="sample-select" aria-label="Sample checkpoint"><option>No samples yet</option></select></div><pre id="sample-text">Generated samples will appear after the next evaluation.
+
+Runs started before telemetry was added only expose CSV metrics.</pre></article><article class="panel"><div class="panel-heading"><div><h2>Run configuration</h2><p>The ingredients of this experiment</p></div><button id="download" type="button" title="Download the current API snapshot">↓ JSON</button></div><dl id="config"></dl></article></section>
+    <footer><span>◈ SSM OBSERVATORY</span><span id="updated">Waiting for first snapshot</span></footer>
+  </main>
+</body></html>

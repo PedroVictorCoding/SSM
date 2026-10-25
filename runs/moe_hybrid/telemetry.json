@@ -1,0 +1,5 @@
+{
+  "active_params_per_token": 222593,
+  "backend": "ndarray (CPU)",
+  "total_params": 517505
+}

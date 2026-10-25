@@ -22,3 +22,21 @@ rustc-ice-*.txt
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+
+
+# Added by cargo
+
+/target
+
+# Local dashboard caches and large, continuously replaced neural snapshots
+__pycache__/
+/runs/**/neural.json
+/runs/**/neural.json.tmp
+
+# Isolated generated GPU benchmark checkpoints; compact evidence is in docs/benchmarks.
+/runs/gpu_bench_*/
+
+
+# Data folders
+/data/incoming/
+/data/incoming_gpu/

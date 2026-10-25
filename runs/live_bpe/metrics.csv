@@ -1,0 +1,1 @@
+step,lr,train_loss,val_loss,total_tokens,hist_tokens,new_tokens,elapsed_secs

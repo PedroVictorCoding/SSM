@@ -1,0 +1,43 @@
+{
+  "model": {
+    "vocab_size": 65,
+    "work_efficient_scan": false,
+    "d_model": 64,
+    "n_layers": 4,
+    "d_state": 16,
+    "d_conv": 4,
+    "expand": 2,
+    "dt_rank": 0,
+    "attn_layers": [
+      2
+    ],
+    "n_heads": 4,
+    "attn_window": 0,
+    "mlp_ratio": 2,
+    "moe_experts": 4,
+    "moe_top_k": 1,
+    "moe_threshold": 0.0,
+    "scan_chunk": 64
+  },
+  "seq_len": 128,
+  "batch_size": 32,
+  "steps": 4000,
+  "lr": 0.0002,
+  "min_lr": 0.00005,
+  "warmup_steps": 0,
+  "weight_decay": 0.1,
+  "grad_clip": 1.0,
+  "val_fraction": 0.1,
+  "eval_every": 200,
+  "save_every": 200,
+  "use_bpe": false,
+  "bpe_vocab_size": 512,
+  "resume": true,
+  "eval_windows": 64,
+  "log_every": 25,
+  "viz_every": 1,
+  "viz_max_values": 0,
+  "sample_chars": 200,
+  "max_minutes": 0.0,
+  "seed": 42
+}

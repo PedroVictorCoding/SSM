@@ -1,0 +1,70 @@
+{
+  "selected_steps": [
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+  ],
+  "mean_step_ms": 141.15309285714287,
+  "stages": [
+    {
+      "stage": "optimizer",
+      "mean_ms": 103.29111428571429,
+      "percent": 73.17665677382809,
+      "median_ms": 103.04560000000001
+    },
+    {
+      "stage": "backward",
+      "mean_ms": 16.339035714285714,
+      "percent": 11.575400427691655,
+      "median_ms": 16.64
+    },
+    {
+      "stage": "forward_loss",
+      "mean_ms": 10.51367857142857,
+      "percent": 7.4484223892062875,
+      "median_ms": 10.08895
+    },
+    {
+      "stage": "gradient_guard",
+      "mean_ms": 7.3607571428571426,
+      "percent": 5.214733162316721,
+      "median_ms": 7.21985
+    },
+    {
+      "stage": "report_eval_checkpoint",
+      "mean_ms": 1.7569071428571428,
+      "percent": 1.2446820025652996,
+      "median_ms": 0.0755
+    },
+    {
+      "stage": "loss_guard",
+      "mean_ms": 1.619192857142857,
+      "percent": 1.1471182277115226,
+      "median_ms": 1.5784
+    },
+    {
+      "stage": "batch",
+      "mean_ms": 0.19744285714285714,
+      "percent": 0.13987851994336645,
+      "median_ms": 0.1701
+    },
+    {
+      "stage": "visualization",
+      "mean_ms": 0.07496428571428572,
+      "percent": 0.05310849673705343,
+      "median_ms": 0.0658
+    }
+  ],
+  "note": "Synchronized timings; measure production throughput with --profile disabled."
+}
