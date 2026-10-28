@@ -1,0 +1,13 @@
+{
+  "review": "REVIEW-20261025-04",
+  "hashes": {
+    "src/runtime/resource.rs": "7271ec5843505bf0c7b3dc081ec0bd802fafb0634ccb3984a2522938809f6d93",
+    "tests/test_resource_scheduling.rs": "4c1df8644d0772450d5f6d1a8202b8827c42ee525936b1ecedb90df84ed58d72",
+    "src/voice/asr.rs": "fe220ef9fb2523ec35159f389109ea5d47b9a3109dc3a4c42ea909745f548790",
+    "src/voice/tts.rs": "c18de1ef99782300fccb94f5a41f7f7caf0a14d4759dac0c1982e06ee0a4b28f",
+    "tests/test_streaming_asr.rs": "355c4d574b99759f83c158c3060a0dbe23f7be45dfe00ffa5931bdf2263c1c35",
+    "docs/TTS_BACKEND_MATRIX.md": "5c59b5ef523655729f8d6f7e2c703101dc0f725e74c30227e47035a2b27c8ab5",
+    "docs/qa/voice_semantics_probe.rs": "bcc1769c522e668dd45205dcead9706e0325a4c6436b9d85b1393f9681a7e77c",
+    "target/debug/deps/libsail-d0ef99ebc1b15d24.rlib": "05c897de5ae7c672e9ccbbbd097fd1d68aefc1c314e4a66d0326aa8c6e909a8d"
+  }
+}

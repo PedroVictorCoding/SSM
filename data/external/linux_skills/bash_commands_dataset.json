@@ -1,0 +1,3362 @@
+[
+  {
+    "prompt": "Move a file called x from the Desktop to the Downloads directory",
+    "response": "mv ~/Desktop/x ~/Downloads/"
+  },
+  {
+    "prompt": "Open YouTube and search for videos by Mr Beast",
+    "response": "xdg-open 'https://www.youtube.com/results?search_query=mr+beast'"
+  },
+  {
+    "prompt": "Create a folder named projects inside the Documents directory",
+    "response": "mkdir ~/Documents/projects"
+  },
+  {
+    "prompt": "Open the Firefox browser",
+    "response": "firefox &"
+  },
+  {
+    "prompt": "Search for all PNG files in the Pictures folder",
+    "response": "find ~/Pictures -name '*.png'"
+  },
+  {
+    "prompt": "Copy a file named notes.txt from Downloads to Documents",
+    "response": "cp ~/Downloads/notes.txt ~/Documents/"
+  },
+  {
+    "prompt": "Delete a file named old_backup.zip from the Desktop",
+    "response": "rm ~/Desktop/old_backup.zip"
+  },
+  {
+    "prompt": "Open the system calendar application",
+    "response": "gnome-calendar"
+  },
+  {
+    "prompt": "Print the current working directory",
+    "response": "pwd"
+  },
+  {
+    "prompt": "List all files including hidden ones in the home directory",
+    "response": "ls -a ~"
+  },
+  {
+    "prompt": "Open Visual Studio Code in the current directory",
+    "response": "code ."
+  },
+  {
+    "prompt": "Display the IP address of the machine",
+    "response": "hostname -I"
+  },
+  {
+    "prompt": "Open the terminal",
+    "response": "gnome-terminal"
+  },
+  {
+    "prompt": "Check the system memory usage",
+    "response": "free -h"
+  },
+  {
+    "prompt": "List all running processes",
+    "response": "ps aux"
+  },
+  {
+    "prompt": "Play a video file named movie.mp4 located in the Videos folder",
+    "response": "mpv ~/Videos/movie.mp4"
+  },
+  {
+    "prompt": "Search for the word 'error' in a file named log.txt",
+    "response": "grep 'error' log.txt"
+  },
+  {
+    "prompt": "Display the date and time",
+    "response": "date"
+  },
+  {
+    "prompt": "Turn off the computer",
+    "response": "shutdown now"
+  },
+  {
+    "prompt": "Restart the computer",
+    "response": "reboot"
+  },
+  {
+    "prompt": "Move a file named report.pdf from Documents to the Desktop",
+    "response": "mv ~/Documents/report.pdf ~/Desktop/"
+  },
+  {
+    "prompt": "Open Spotify and start playing music",
+    "response": "spotify &"
+  },
+  {
+    "prompt": "Create a directory called temp in the root",
+    "response": "sudo mkdir /temp"
+  },
+  {
+    "prompt": "Open the Chrome browser and go to google.com",
+    "response": "google-chrome 'https://www.google.com'"
+  },
+  {
+    "prompt": "Find all files named 'readme.txt' in the current directory",
+    "response": "find . -name 'readme.txt'"
+  },
+  {
+    "prompt": "Copy the file config.json from the root to the current directory",
+    "response": "cp /config.json ./"
+  },
+  {
+    "prompt": "Delete the file outdated_backup.tar from Downloads",
+    "response": "rm ~/Downloads/outdated_backup.tar"
+  },
+  {
+    "prompt": "Open a terminal window and run the command to check disk usage",
+    "response": "gnome-terminal -e 'df -h'"
+  },
+  {
+    "prompt": "Show the current version of the installed kernel",
+    "response": "uname -r"
+  },
+  {
+    "prompt": "List all directories inside the current directory",
+    "response": "ls -d */"
+  },
+  {
+    "prompt": "Show the top 10 processes consuming the most memory",
+    "response": "ps aux --sort=-%mem | head -n 10"
+  },
+  {
+    "prompt": "Open the calculator application",
+    "response": "gnome-calculator"
+  },
+  {
+    "prompt": "Search for a file named index.html in the /var/www folder",
+    "response": "find /var/www -name 'index.html'"
+  },
+  {
+    "prompt": "Rename a file from oldfile.txt to newfile.txt",
+    "response": "mv oldfile.txt newfile.txt"
+  },
+  {
+    "prompt": "Open a PDF file named presentation.pdf from the Desktop",
+    "response": "xdg-open ~/Desktop/presentation.pdf"
+  },
+  {
+    "prompt": "Display all environment variables",
+    "response": "printenv"
+  },
+  {
+    "prompt": "Create a tar.gz archive of the folder project",
+    "response": "tar -czvf project.tar.gz ~/project"
+  },
+  {
+    "prompt": "Unzip a file named archive.zip",
+    "response": "unzip archive.zip"
+  },
+  {
+    "prompt": "Compress a folder named files into a zip file",
+    "response": "zip -r files.zip ~/files"
+  },
+  {
+    "prompt": "Update the system using apt",
+    "response": "sudo apt update && sudo apt upgrade -y"
+  },
+  {
+    "prompt": "Move a file called x from the Desktop to the Downloads directory",
+    "response": "mv ~/Desktop/x ~/Downloads/"
+  },
+  {
+    "prompt": "Open YouTube and search for videos by Mr Beast",
+    "response": "xdg-open 'https://www.youtube.com/results?search_query=mr+beast'"
+  },
+  {
+    "prompt": "Create a folder named projects inside the Documents directory",
+    "response": "mkdir ~/Documents/projects"
+  },
+  {
+    "prompt": "Open the Firefox browser",
+    "response": "firefox &"
+  },
+  {
+    "prompt": "Search for all PNG files in the Pictures folder",
+    "response": "find ~/Pictures -name '*.png'"
+  },
+  {
+    "prompt": "Copy a file named notes.txt from Downloads to Documents",
+    "response": "cp ~/Downloads/notes.txt ~/Documents/"
+  },
+  {
+    "prompt": "Delete a file named old_backup.zip from the Desktop",
+    "response": "rm ~/Desktop/old_backup.zip"
+  },
+  {
+    "prompt": "Open the system calendar application",
+    "response": "gnome-calendar"
+  },
+  {
+    "prompt": "Print the current working directory",
+    "response": "pwd"
+  },
+  {
+    "prompt": "List all files including hidden ones in the home directory",
+    "response": "ls -a ~"
+  },
+  {
+    "prompt": "Open Visual Studio Code in the current directory",
+    "response": "code ."
+  },
+  {
+    "prompt": "Display the IP address of the machine",
+    "response": "hostname -I"
+  },
+  {
+    "prompt": "Open the terminal",
+    "response": "gnome-terminal"
+  },
+  {
+    "prompt": "Check the system memory usage",
+    "response": "free -h"
+  },
+  {
+    "prompt": "List all running processes",
+    "response": "ps aux"
+  },
+  {
+    "prompt": "Play a video file named movie.mp4 located in the Videos folder",
+    "response": "mpv ~/Videos/movie.mp4"
+  },
+  {
+    "prompt": "Search for the word 'error' in a file named log.txt",
+    "response": "grep 'error' log.txt"
+  },
+  {
+    "prompt": "Display the date and time",
+    "response": "date"
+  },
+  {
+    "prompt": "Turn off the computer",
+    "response": "shutdown now"
+  },
+  {
+    "prompt": "Restart the computer",
+    "response": "reboot"
+  },
+  {
+    "prompt": "Move a file named report.pdf from Documents to the Desktop",
+    "response": "mv ~/Documents/report.pdf ~/Desktop/"
+  },
+  {
+    "prompt": "Open YouTube and search for 'linux tutorial videos'",
+    "response": "xdg-open 'https://www.youtube.com/results?search_query=linux+tutorial+videos'"
+  },
+  {
+    "prompt": "Create a new directory called backups in the home folder",
+    "response": "mkdir ~/backups"
+  },
+  {
+    "prompt": "Open Google Chrome browser",
+    "response": "google-chrome &"
+  },
+  {
+    "prompt": "Find all .txt files in the Documents folder",
+    "response": "find ~/Documents -name '*.txt'"
+  },
+  {
+    "prompt": "Copy the file 'data.csv' from Downloads to the current directory",
+    "response": "cp ~/Downloads/data.csv ./"
+  },
+  {
+    "prompt": "Delete a file named old_version.tar from the Desktop",
+    "response": "rm ~/Desktop/old_version.tar"
+  },
+  {
+    "prompt": "Open the calendar application in Linux",
+    "response": "gnome-calendar"
+  },
+  {
+    "prompt": "Print the date and time in a human-readable format",
+    "response": "date '+%Y-%m-%d %H:%M:%S'"
+  },
+  {
+    "prompt": "List all directories and files in the current directory",
+    "response": "ls -l"
+  },
+  {
+    "prompt": "Open the terminal application in Ubuntu",
+    "response": "gnome-terminal"
+  },
+  {
+    "prompt": "Show the disk usage of the home directory",
+    "response": "du -sh ~/"
+  },
+  {
+    "prompt": "Play the music file 'song.mp3' from the Music folder",
+    "response": "mpv ~/Music/song.mp3"
+  },
+  {
+    "prompt": "Display the number of CPU cores on the system",
+    "response": "nproc"
+  },
+  {
+    "prompt": "Show the currently logged-in users",
+    "response": "who"
+  },
+  {
+    "prompt": "Search for the word 'success' in the log file",
+    "response": "grep 'success' /var/log/syslog"
+  },
+  {
+    "prompt": "Create a compressed tar archive of the directory 'project'",
+    "response": "tar -czvf project.tar.gz ~/project"
+  },
+  {
+    "prompt": "Extract a tar.gz archive named project.tar.gz",
+    "response": "tar -xzvf project.tar.gz"
+  },
+  {
+    "prompt": "Display the system uptime",
+    "response": "uptime"
+  },
+  {
+    "prompt": "Show the kernel version of the operating system",
+    "response": "uname -r"
+  },
+  {
+    "prompt": "Rename the file report_old.pdf to report_new.pdf",
+    "response": "mv report_old.pdf report_new.pdf"
+  },
+  {
+    "prompt": "Change the file permissions for file.txt to be readable and writable by the user only",
+    "response": "chmod 600 file.txt"
+  },
+  {
+    "prompt": "Remove a directory named old_folder from the home directory",
+    "response": "rm -r ~/old_folder"
+  },
+  {
+    "prompt": "Find all files that have the word 'config' in their names",
+    "response": "find / -name '*config*'"
+  },
+  {
+    "prompt": "Open the Firefox browser in private browsing mode",
+    "response": "firefox --private-window &"
+  },
+  {
+    "prompt": "Show the memory usage in human-readable format",
+    "response": "free -h"
+  },
+  {
+    "prompt": "Create a symbolic link for the file example.txt in the current directory",
+    "response": "ln -s example.txt symlink_example.txt"
+  },
+  {
+    "prompt": "Display all active network connections on the system",
+    "response": "ss -tuln"
+  },
+  {
+    "prompt": "Send a test email using the mail command",
+    "response": "echo 'Test Email Body' | mail -s 'Test Subject' user@example.com"
+  },
+  {
+    "prompt": "Show the system's IP address",
+    "response": "hostname -I"
+  },
+  {
+    "prompt": "Delete all files in the temp directory",
+    "response": "rm -rf /tmp/*"
+  },
+  {
+    "prompt": "Show the disk usage of the current directory",
+    "response": "du -sh ."
+  },
+  {
+    "prompt": "Open the default web browser to search for Linux tutorials",
+    "response": "xdg-open 'https://www.google.com/search?q=Linux+tutorials'"
+  },
+  {
+    "prompt": "Backup the folder 'project' to 'backup_project.tar.gz'",
+    "response": "tar -czvf backup_project.tar.gz ~/project"
+  },
+  {
+    "prompt": "Install the latest updates on a Debian-based system",
+    "response": "sudo apt update && sudo apt upgrade -y"
+  },
+  {
+    "prompt": "Show the list of all installed packages",
+    "response": "dpkg --get-selections"
+  },
+  {
+    "prompt": "Count the number of lines in a file named large_file.txt",
+    "response": "wc -l large_file.txt"
+  },
+  {
+    "prompt": "Show the top 5 memory-consuming processes",
+    "response": "ps aux --sort=-%mem | head -n 5"
+  },
+  {
+    "prompt": "Change the owner of a file named file.txt to user1",
+    "response": "sudo chown user1 file.txt"
+  },
+  {
+    "prompt": "Move a directory named old_folder from Documents to Downloads",
+    "response": "mv ~/Documents/old_folder ~/Downloads/"
+  },
+  {
+    "prompt": "Move a file called x from the Desktop to the Downloads directory",
+    "response": "mv ~/Desktop/x ~/Downloads/"
+  },
+  {
+    "prompt": "Open YouTube and search for videos by Mr Beast",
+    "response": "xdg-open 'https://www.youtube.com/results?search_query=mr+beast'"
+  },
+  {
+    "prompt": "Create a folder named projects inside the Documents directory",
+    "response": "mkdir ~/Documents/projects"
+  },
+  {
+    "prompt": "Open the Firefox browser",
+    "response": "firefox &"
+  },
+  {
+    "prompt": "Search for all PNG files in the Pictures folder",
+    "response": "find ~/Pictures -name '*.png'"
+  },
+  {
+    "prompt": "Copy a file named notes.txt from Downloads to Documents",
+    "response": "cp ~/Downloads/notes.txt ~/Documents/"
+  },
+  {
+    "prompt": "Delete a file named old_backup.zip from the Desktop",
+    "response": "rm ~/Desktop/old_backup.zip"
+  },
+  {
+    "prompt": "Open the system calendar application",
+    "response": "gnome-calendar"
+  },
+  {
+    "prompt": "Print the current working directory",
+    "response": "pwd"
+  },
+  {
+    "prompt": "List all files including hidden ones in the home directory",
+    "response": "ls -a ~"
+  },
+  {
+    "prompt": "Open Visual Studio Code in the current directory",
+    "response": "code ."
+  },
+  {
+    "prompt": "Display the IP address of the machine",
+    "response": "hostname -I"
+  },
+  {
+    "prompt": "Open the terminal",
+    "response": "gnome-terminal"
+  },
+  {
+    "prompt": "Check the system memory usage",
+    "response": "free -h"
+  },
+  {
+    "prompt": "List all running processes",
+    "response": "ps aux"
+  },
+  {
+    "prompt": "Play a video file named movie.mp4 located in the Videos folder",
+    "response": "mpv ~/Videos/movie.mp4"
+  },
+  {
+    "prompt": "Search for the word 'error' in a file named log.txt",
+    "response": "grep 'error' log.txt"
+  },
+  {
+    "prompt": "Display the date and time",
+    "response": "date"
+  },
+  {
+    "prompt": "Turn off the computer",
+    "response": "shutdown now"
+  },
+  {
+    "prompt": "Restart the computer",
+    "response": "reboot"
+  },
+  {
+    "prompt": "Rename the file report_old.pdf to report_new.pdf",
+    "response": "mv report_old.pdf report_new.pdf"
+  },
+  {
+    "prompt": "Change the file permissions for file.txt to be readable and writable by the user only",
+    "response": "chmod 600 file.txt"
+  },
+  {
+    "prompt": "Remove a directory named old_folder from the home directory",
+    "response": "rm -r ~/old_folder"
+  },
+  {
+    "prompt": "Find all files that have the word 'config' in their names",
+    "response": "find / -name '*config*'"
+  },
+  {
+    "prompt": "Open the Firefox browser in private browsing mode",
+    "response": "firefox --private-window &"
+  },
+  {
+    "prompt": "Show the memory usage in human-readable format",
+    "response": "free -h"
+  },
+  {
+    "prompt": "Create a symbolic link for the file example.txt in the current directory",
+    "response": "ln -s example.txt symlink_example.txt"
+  },
+  {
+    "prompt": "Display all active network connections on the system",
+    "response": "ss -tuln"
+  },
+  {
+    "prompt": "Send a test email using the mail command",
+    "response": "echo 'Test Email Body' | mail -s 'Test Subject' user@example.com"
+  },
+  {
+    "prompt": "Show the system's IP address",
+    "response": "hostname -I"
+  },
+  {
+    "prompt": "Delete all files in the temp directory",
+    "response": "rm -rf /tmp/*"
+  },
+  {
+    "prompt": "Show the disk usage of the current directory",
+    "response": "du -sh ."
+  },
+  {
+    "prompt": "Open the default web browser to search for Linux tutorials",
+    "response": "xdg-open 'https://www.google.com/search?q=Linux+tutorials'"
+  },
+  {
+    "prompt": "Backup the folder 'project' to 'backup_project.tar.gz'",
+    "response": "tar -czvf backup_project.tar.gz ~/project"
+  },
+  {
+    "prompt": "Install the latest updates on a Debian-based system",
+    "response": "sudo apt update && sudo apt upgrade -y"
+  },
+  {
+    "prompt": "Show the list of all installed packages",
+    "response": "dpkg --get-selections"
+  },
+  {
+    "prompt": "Count the number of lines in a file named large_file.txt",
+    "response": "wc -l large_file.txt"
+  },
+  {
+    "prompt": "Show the top 5 memory-consuming processes",
+    "response": "ps aux --sort=-%mem | head -n 5"
+  },
+  {
+    "prompt": "Change the owner of a file named file.txt to user1",
+    "response": "sudo chown user1 file.txt"
+  },
+  {
+    "prompt": "Move a directory named old_folder from Documents to Downloads",
+    "response": "mv ~/Documents/old_folder ~/Downloads/"
+  },
+  {
+    "prompt": "Move a file named report.pdf from Documents to the Desktop",
+    "response": "mv ~/Documents/report.pdf ~/Desktop/"
+  },
+  {
+    "prompt": "Open YouTube and search for 'linux tutorial videos'",
+    "response": "xdg-open 'https://www.youtube.com/results?search_query=linux+tutorial+videos'"
+  },
+  {
+    "prompt": "Create a new directory called backups in the home folder",
+    "response": "mkdir ~/backups"
+  },
+  {
+    "prompt": "Open Google Chrome browser",
+    "response": "google-chrome &"
+  },
+  {
+    "prompt": "Find all .txt files in the Documents folder",
+    "response": "find ~/Documents -name '*.txt'"
+  },
+  {
+    "prompt": "Copy the file 'data.csv' from Downloads to the current directory",
+    "response": "cp ~/Downloads/data.csv ./"
+  },
+  {
+    "prompt": "Delete a file named old_version.tar from the Desktop",
+    "response": "rm ~/Desktop/old_version.tar"
+  },
+  {
+    "prompt": "Open the calendar application in Linux",
+    "response": "gnome-calendar"
+  },
+  {
+    "prompt": "Print the date and time in a human-readable format",
+    "response": "date '+%Y-%m-%d %H:%M:%S'"
+  },
+  {
+    "prompt": "List all directories and files in the current directory",
+    "response": "ls -l"
+  },
+  {
+    "prompt": "Open the terminal application in Ubuntu",
+    "response": "gnome-terminal"
+  },
+  {
+    "prompt": "Show the disk usage of the home directory",
+    "response": "du -sh ~/"
+  },
+  {
+    "prompt": "Play the music file 'song.mp3' from the Music folder",
+    "response": "mpv ~/Music/song.mp3"
+  },
+  {
+    "prompt": "Display the number of CPU cores on the system",
+    "response": "nproc"
+  },
+  {
+    "prompt": "Show the currently logged-in users",
+    "response": "who"
+  },
+  {
+    "prompt": "Search for the word 'success' in the log file",
+    "response": "grep 'success' /var/log/syslog"
+  },
+  {
+    "prompt": "Create a compressed tar archive of the directory 'project'",
+    "response": "tar -czvf project.tar.gz ~/project"
+  },
+  {
+    "prompt": "Extract a tar.gz archive named project.tar.gz",
+    "response": "tar -xzvf project.tar.gz"
+  },
+  {
+    "prompt": "Display the system uptime",
+    "response": "uptime"
+  },
+  {
+    "prompt": "Show the kernel version of the operating system",
+    "response": "uname -r"
+  },
+  {
+    "prompt": "Move a file named x from the Desktop to the Downloads directory",
+    "response": "mv ~/Desktop/x ~/Downloads/"
+  },
+  {
+    "prompt": "Open YouTube and search for videos by Mr Beast",
+    "response": "xdg-open 'https://www.youtube.com/results?search_query=mr+beast'"
+  },
+  {
+    "prompt": "Create a folder named projects inside the Documents directory",
+    "response": "mkdir ~/Documents/projects"
+  },
+  {
+    "prompt": "Open the Firefox browser",
+    "response": "firefox &"
+  },
+  {
+    "prompt": "Search for all PNG files in the Pictures folder",
+    "response": "find ~/Pictures -name '*.png'"
+  },
+  {
+    "prompt": "Copy a file named notes.txt from Downloads to Documents",
+    "response": "cp ~/Downloads/notes.txt ~/Documents/"
+  },
+  {
+    "prompt": "Delete a file named old_backup.zip from the Desktop",
+    "response": "rm ~/Desktop/old_backup.zip"
+  },
+  {
+    "prompt": "Open the system calendar application",
+    "response": "gnome-calendar"
+  },
+  {
+    "prompt": "Print the current working directory",
+    "response": "pwd"
+  },
+  {
+    "prompt": "List all files including hidden ones in the home directory",
+    "response": "ls -a ~"
+  },
+  {
+    "prompt": "Open Google Chrome in incognito mode",
+    "response": "google-chrome --incognito &"
+  },
+  {
+    "prompt": "Create a new folder named archive inside the Documents directory",
+    "response": "mkdir ~/Documents/archive"
+  },
+  {
+    "prompt": "List all the files in the Downloads directory",
+    "response": "ls ~/Downloads"
+  },
+  {
+    "prompt": "Find all files containing the word 'backup' in the name",
+    "response": "find / -name '*backup*'"
+  },
+  {
+    "prompt": "Show the disk usage of the Downloads folder",
+    "response": "du -sh ~/Downloads"
+  },
+  {
+    "prompt": "Change the permissions of a file named data.txt to be readable and writable by everyone",
+    "response": "chmod 666 data.txt"
+  },
+  {
+    "prompt": "Start the default text editor",
+    "response": "gedit &"
+  },
+  {
+    "prompt": "Backup the 'work' folder to 'work_backup.tar.gz'",
+    "response": "tar -czvf work_backup.tar.gz ~/work"
+  },
+  {
+    "prompt": "Search for the word 'error' in all log files in the /var/log directory",
+    "response": "grep 'error' /var/log/*"
+  },
+  {
+    "prompt": "List all the processes that are currently running",
+    "response": "ps aux"
+  },
+  {
+    "prompt": "Check the available disk space on the system",
+    "response": "df -h"
+  },
+  {
+    "prompt": "Open the default PDF reader to view a file named document.pdf",
+    "response": "xdg-open document.pdf"
+  },
+  {
+    "prompt": "Compress the folder 'project_folder' into a zip file named project.zip",
+    "response": "zip -r project.zip ~/project_folder"
+  },
+  {
+    "prompt": "Move a file named report.pdf from the Desktop to Documents",
+    "response": "mv ~/Desktop/report.pdf ~/Documents/"
+  },
+  {
+    "prompt": "Open the system settings",
+    "response": "gnome-control-center"
+  },
+  {
+    "prompt": "Create a new file named notes.txt in the Documents directory",
+    "response": "touch ~/Documents/notes.txt"
+  },
+  {
+    "prompt": "Display the contents of a text file named message.txt",
+    "response": "cat message.txt"
+  },
+  {
+    "prompt": "Display the last 10 lines of a log file named error.log",
+    "response": "tail -n 10 error.log"
+  },
+  {
+    "prompt": "Show the current working directory",
+    "response": "pwd"
+  },
+  {
+    "prompt": "Delete a file named old_report.txt",
+    "response": "rm old_report.txt"
+  },
+  {
+    "prompt": "Backup the entire home directory to a tar.gz file",
+    "response": "tar -czvf home_backup.tar.gz ~/"
+  },
+  {
+    "prompt": "Install a new package named 'htop' on a Debian-based system",
+    "response": "sudo apt install htop"
+  },
+  {
+    "prompt": "Start the VLC media player",
+    "response": "vlc &"
+  },
+  {
+    "prompt": "Open the system browser and go to github.com",
+    "response": "xdg-open 'https://github.com'"
+  },
+  {
+    "prompt": "Delete all .log files in the /var/log directory",
+    "response": "rm /var/log/*.log"
+  },
+  {
+    "prompt": "Search for a file named 'index.html' in the /var/www directory",
+    "response": "find /var/www -name 'index.html'"
+  },
+  {
+    "prompt": "Show the currently running processes in a tree structure",
+    "response": "pstree"
+  },
+  {
+    "prompt": "Create a new file named new_file.txt",
+    "response": "touch new_file.txt"
+  },
+  {
+    "prompt": "Find all files that were last modified more than 30 days ago",
+    "response": "find . -mtime +30"
+  },
+  {
+    "prompt": "List all the directories inside the /home directory",
+    "response": "ls -d /home/*/"
+  },
+  {
+    "prompt": "Show the kernel version of the system",
+    "response": "uname -r"
+  },
+  {
+    "prompt": "Show the disk usage of the current directory in human-readable format",
+    "response": "du -sh ."
+  },
+  {
+    "prompt": "Check the current system's uptime",
+    "response": "uptime"
+  },
+  {
+    "prompt": "Show the current date in YYYY-MM-DD format",
+    "response": "date '+%Y-%m-%d'"
+  },
+  {
+    "prompt": "Search for the word 'warning' in a log file named system.log",
+    "response": "grep 'warning' system.log"
+  },
+  {
+    "prompt": "Display the last 100 lines of the system log",
+    "response": "tail -n 100 /var/log/syslog"
+  },
+  {
+    "prompt": "Start the Apache web server",
+    "response": "sudo systemctl start apache2"
+  },
+  {
+    "prompt": "Stop the Apache web server",
+    "response": "sudo systemctl stop apache2"
+  },
+  {
+    "prompt": "Restart the Apache web server",
+    "response": "sudo systemctl restart apache2"
+  },
+  {
+    "prompt": "Display the available memory in human-readable format",
+    "response": "free -h"
+  },
+  {
+    "prompt": "Create a new file named test_file.txt in the Documents folder",
+    "response": "touch ~/Documents/test_file.txt"
+  },
+  {
+    "prompt": "Show the size of all files in the current directory",
+    "response": "du -sh *"
+  },
+  {
+    "prompt": "Display the details of a file named my_file.txt",
+    "response": "ls -l my_file.txt"
+  },
+  {
+    "prompt": "Show the top 10 largest files in the system",
+    "response": "find / -type f -exec du -h {} + | sort -rh | head -n 10"
+  },
+  {
+    "prompt": "Search for files with the extension '.jpg' in the Pictures folder",
+    "response": "find ~/Pictures -name '*.jpg'"
+  },
+  {
+    "prompt": "Display the contents of a file named config.txt",
+    "response": "cat config.txt"
+  },
+  {
+    "prompt": "List all the files in the current directory sorted by modification time",
+    "response": "ls -lt"
+  },
+  {
+    "prompt": "Find all files containing the word 'error' in the current directory",
+    "response": "grep -r 'error' ."
+  },
+  {
+    "prompt": "Show the current system's hostname",
+    "response": "hostname"
+  },
+  {
+    "prompt": "Show the CPU usage statistics",
+    "response": "top"
+  },
+  {
+    "prompt": "Open the terminal with administrator privileges",
+    "response": "sudo -i"
+  },
+  {
+    "prompt": "Display the number of processes currently running",
+    "response": "ps aux | wc -l"
+  },
+  {
+    "prompt": "Show the current users logged into the system",
+    "response": "who"
+  },
+  {
+    "prompt": "List all the installed Snap packages",
+    "response": "snap list"
+  },
+  {
+    "prompt": "Open the default image viewer to view an image named photo.png",
+    "response": "xdg-open photo.png"
+  },
+  {
+    "prompt": "Delete all files with the '.bak' extension in the current directory",
+    "response": "rm *.bak"
+  },
+  {
+    "prompt": "Create a new directory called temp_backup in the current folder",
+    "response": "mkdir temp_backup"
+  },
+  {
+    "prompt": "List all the active network connections",
+    "response": "netstat -tuln"
+  },
+  {
+    "prompt": "Show the system's uptime in a more readable format",
+    "response": "uptime -p"
+  },
+  {
+    "prompt": "Open the default text editor with a file named notes.txt",
+    "response": "gedit notes.txt &"
+  },
+  {
+    "prompt": "Change the current directory to the Downloads folder",
+    "response": "cd ~/Downloads"
+  },
+  {
+    "prompt": "Show the history of all executed commands",
+    "response": "history"
+  },
+  {
+    "prompt": "Start the MySQL service",
+    "response": "sudo systemctl start mysql"
+  },
+  {
+    "prompt": "Stop the MySQL service",
+    "response": "sudo systemctl stop mysql"
+  },
+  {
+    "prompt": "Check the status of the Apache service",
+    "response": "sudo systemctl status apache2"
+  },
+  {
+    "prompt": "Search for files containing the string 'backup' in the current directory",
+    "response": "grep -r 'backup' ."
+  },
+  {
+    "prompt": "List all the files in the current directory in a tree structure",
+    "response": "tree"
+  },
+  {
+    "prompt": "Rename a file called old_name.txt to new_name.txt",
+    "response": "mv old_name.txt new_name.txt"
+  },
+  {
+    "prompt": "Check the system's current disk usage",
+    "response": "df -h"
+  },
+  {
+    "prompt": "Change the owner of a directory named data to user1",
+    "response": "sudo chown -R user1 data/"
+  },
+  {
+    "prompt": "Search for a string 'Linux' in a file named readme.txt",
+    "response": "grep 'Linux' readme.txt"
+  },
+  {
+    "prompt": "Clear the terminal screen",
+    "response": "clear"
+  },
+  {
+    "prompt": "Show the last 50 lines of the system log",
+    "response": "tail -n 50 /var/log/syslog"
+  },
+  {
+    "prompt": "Show the total number of lines in a file named document.txt",
+    "response": "wc -l document.txt"
+  },
+  {
+    "prompt": "Show the disk usage of the root directory",
+    "response": "du -sh /"
+  },
+  {
+    "prompt": "Create a hard link for a file named file.txt to file_link.txt",
+    "response": "ln file.txt file_link.txt"
+  },
+  {
+    "prompt": "Show the top 10 memory-consuming processes",
+    "response": "ps aux --sort=-%mem | head -n 10"
+  },
+  {
+    "prompt": "Search for the word 'error' in all text files in the current directory",
+    "response": "grep 'error' *.txt"
+  },
+  {
+    "prompt": "Display the system's current kernel version",
+    "response": "uname -v"
+  },
+  {
+    "prompt": "Create a new directory named 'backup' inside the home folder",
+    "response": "mkdir ~/backup"
+  },
+  {
+    "prompt": "Check the CPU temperature on the system",
+    "response": "sensors | grep 'Core 0'"
+  },
+  {
+    "prompt": "Delete all files with the extension .bak in the current directory",
+    "response": "rm *.bak"
+  },
+  {
+    "prompt": "Show all currently active network connections",
+    "response": "ss -tuln"
+  },
+  {
+    "prompt": "Change the current directory to the home directory",
+    "response": "cd ~"
+  },
+  {
+    "prompt": "Check the available disk space on the system",
+    "response": "df -h"
+  },
+  {
+    "prompt": "Compress the folder 'photos' into a tar.gz file named photos_backup.tar.gz",
+    "response": "tar -czvf photos_backup.tar.gz ~/photos"
+  },
+  {
+    "prompt": "Create a backup of a directory named 'documents' into documents_backup.tar.gz",
+    "response": "tar -czvf documents_backup.tar.gz ~/documents"
+  },
+  {
+    "prompt": "List all files modified within the last 7 days in the current directory",
+    "response": "find . -mtime -7"
+  },
+  {
+    "prompt": "Show the IP address of the machine",
+    "response": "hostname -I"
+  },
+  {
+    "prompt": "List all running Docker containers",
+    "response": "docker ps"
+  },
+  {
+    "prompt": "Display the top 10 CPU-consuming processes",
+    "response": "ps aux --sort=-%cpu | head -n 10"
+  },
+  {
+    "prompt": "Install a package named 'curl' on a Debian-based system",
+    "response": "sudo apt install curl"
+  },
+  {
+    "prompt": "Change the permissions of a file named data.txt to read-only",
+    "response": "chmod 444 data.txt"
+  },
+  {
+    "prompt": "Show the list of all active users",
+    "response": "w"
+  },
+  {
+    "prompt": "Display the current system time",
+    "response": "date"
+  },
+  {
+    "prompt": "Change the file permissions of 'example.sh' to executable",
+    "response": "chmod +x example.sh"
+  },
+  {
+    "prompt": "Open a PDF file named 'manual.pdf' using the default PDF viewer",
+    "response": "xdg-open manual.pdf"
+  },
+  {
+    "prompt": "Create a symbolic link for a file named example.txt to link_example.txt",
+    "response": "ln -s example.txt link_example.txt"
+  },
+  {
+    "prompt": "Move a file named 'data.txt' from Downloads to Documents",
+    "response": "mv ~/Downloads/data.txt ~/Documents/"
+  },
+  {
+    "prompt": "Search for files that contain the word 'config' in the name",
+    "response": "find / -name '*config*'"
+  },
+  {
+    "prompt": "Check the system uptime",
+    "response": "uptime"
+  },
+  {
+    "prompt": "Remove all empty files from the current directory",
+    "response": "find . -type f -empty -delete"
+  },
+  {
+    "prompt": "Open the system calendar application",
+    "response": "gnome-calendar"
+  },
+  {
+    "prompt": "Check the disk usage for the current directory",
+    "response": "du -sh ."
+  },
+  {
+    "prompt": "Download a file using wget from a URL",
+    "response": "wget http://example.com/file.txt"
+  },
+  {
+    "prompt": "Check the disk space usage of a specific partition",
+    "response": "df -h /"
+  },
+  {
+    "prompt": "Open a web page in the default browser",
+    "response": "xdg-open 'https://example.com'"
+  },
+  {
+    "prompt": "Create a compressed zip file named archive.zip containing all files in the current directory",
+    "response": "zip -r archive.zip *"
+  },
+  {
+    "prompt": "Show all the active services running on the system",
+    "response": "systemctl list-units --type=service"
+  },
+  {
+    "prompt": "Find all files in the /etc directory containing the word 'config'",
+    "response": "grep -r 'config' /etc/"
+  },
+  {
+    "prompt": "Create a backup of a file named important.txt to a file named important_backup.txt",
+    "response": "cp important.txt important_backup.txt"
+  },
+  {
+    "prompt": "Show the total number of files in the current directory",
+    "response": "ls | wc -l"
+  },
+  {
+    "prompt": "Show the current system's IP address and network information",
+    "response": "ifconfig"
+  },
+  {
+    "prompt": "Change the ownership of a directory named project to user1",
+    "response": "sudo chown -R user1 project/"
+  },
+  {
+    "prompt": "Show the top 10 largest files in the system",
+    "response": "du -ah / | sort -rh | head -n 10"
+  },
+  {
+    "prompt": "Show the list of all installed packages on a Debian-based system",
+    "response": "dpkg --get-selections"
+  },
+  {
+    "prompt": "Create a new directory called logs inside the home directory",
+    "response": "mkdir ~/logs"
+  },
+  {
+    "prompt": "Find all files with the '.log' extension in the current directory",
+    "response": "find . -name '*.log'"
+  },
+  {
+    "prompt": "Search for a string 'error' in a file named app.log",
+    "response": "grep 'error' app.log"
+  },
+  {
+    "prompt": "Clear the terminal screen",
+    "response": "clear"
+  },
+  {
+    "prompt": "Restart the system",
+    "response": "sudo reboot"
+  },
+  {
+    "prompt": "Show the list of all active network interfaces",
+    "response": "ip link show"
+  },
+  {
+    "prompt": "Create a directory named 'temp' in the /var folder",
+    "response": "sudo mkdir /var/temp"
+  },
+  {
+    "prompt": "Open a website in Firefox",
+    "response": "firefox 'https://example.com' &"
+  },
+  {
+    "prompt": "Start a new screen session",
+    "response": "screen"
+  },
+  {
+    "prompt": "Show the system's uptime and load averages",
+    "response": "uptime"
+  },
+  {
+    "prompt": "Display the list of all currently running processes",
+    "response": "ps aux"
+  },
+  {
+    "prompt": "Change the system's hostname to new-hostname",
+    "response": "sudo hostnamectl set-hostname new-hostname"
+  },
+  {
+    "prompt": "Show the disk usage statistics for the root directory",
+    "response": "df -h /"
+  },
+  {
+    "prompt": "Search for all files modified in the last 30 days",
+    "response": "find . -mtime -30"
+  },
+  {
+    "prompt": "Start the Nginx service",
+    "response": "sudo systemctl start nginx"
+  },
+  {
+    "prompt": "Stop the Nginx service",
+    "response": "sudo systemctl stop nginx"
+  },
+  {
+    "prompt": "Show the number of files in a directory named 'documents'",
+    "response": "ls ~/documents | wc -l"
+  },
+  {
+    "prompt": "Create a backup of a MySQL database named 'mydb'",
+    "response": "mysqldump -u root -p mydb > mydb_backup.sql"
+  },
+  {
+    "prompt": "Find and remove all files with the '.bak' extension in the system",
+    "response": "find / -name '*.bak' -exec rm {} +"
+  },
+  {
+    "prompt": "List all open ports on the system",
+    "response": "netstat -tuln"
+  },
+  {
+    "prompt": "Show the detailed information of a file named 'log.txt'",
+    "response": "ls -l log.txt"
+  },
+  {
+    "prompt": "Install a package named 'curl' on a RedHat-based system",
+    "response": "sudo yum install curl"
+  },
+  {
+    "prompt": "Find and list all files in the /home directory",
+    "response": "find /home -type f"
+  },
+  {
+    "prompt": "Search for a word 'error' in all log files in /var/log",
+    "response": "grep 'error' /var/log/*"
+  },
+  {
+    "prompt": "Start a Python HTTP server on port 8000",
+    "response": "python3 -m http.server 8000"
+  },
+  {
+    "prompt": "Show the memory usage on the system",
+    "response": "free -h"
+  },
+  {
+    "prompt": "Open a PDF file named 'tutorial.pdf'",
+    "response": "xdg-open tutorial.pdf"
+  },
+  {
+    "prompt": "List all users currently logged into the system",
+    "response": "who"
+  },
+  {
+    "prompt": "Display the current date and time",
+    "response": "date"
+  },
+  {
+    "prompt": "Show the current system's disk usage in human-readable format",
+    "response": "df -h"
+  },
+  {
+    "prompt": "Create a backup of the 'documents' directory to documents_backup.tar",
+    "response": "tar -cvf documents_backup.tar ~/documents"
+  },
+  {
+    "prompt": "Show the total number of running processes",
+    "response": "ps aux | wc -l"
+  },
+  {
+    "prompt": "Find all files with the extension '.txt' in the current directory",
+    "response": "find . -name '*.txt'"
+  },
+  {
+    "prompt": "Display the first 20 lines of a file named 'logfile.log'",
+    "response": "head -n 20 logfile.log"
+  },
+  {
+    "prompt": "Display the top 10 largest files in the current directory",
+    "response": "du -ah . | sort -rh | head -n 10"
+  },
+  {
+    "prompt": "Check the status of the SSH service",
+    "response": "sudo systemctl status ssh"
+  },
+  {
+    "prompt": "Stop the SSH service",
+    "response": "sudo systemctl stop ssh"
+  },
+  {
+    "prompt": "Check the available free memory on the system",
+    "response": "free -m"
+  },
+  {
+    "prompt": "Display the network configuration of the system",
+    "response": "ifconfig"
+  },
+  {
+    "prompt": "Install a new package 'nginx' on a Debian-based system",
+    "response": "sudo apt install nginx"
+  },
+  {
+    "prompt": "Restart the nginx service",
+    "response": "sudo systemctl restart nginx"
+  },
+  {
+    "prompt": "Remove a directory named 'old_files' and its contents",
+    "response": "rm -rf old_files"
+  },
+  {
+    "prompt": "Show the system's IP address",
+    "response": "hostname -I"
+  },
+  {
+    "prompt": "Check if a file named 'example.sh' is executable",
+    "response": "ls -l example.sh"
+  },
+  {
+    "prompt": "Change the permissions of a directory named 'backup' to 755",
+    "response": "chmod 755 backup"
+  },
+  {
+    "prompt": "Create a new directory named 'projects' inside the home directory",
+    "response": "mkdir ~/projects"
+  },
+  {
+    "prompt": "List all files and directories in the current directory with details",
+    "response": "ls -l"
+  },
+  {
+    "prompt": "Find and remove all empty files in the system",
+    "response": "find / -type f -empty -delete"
+  },
+  {
+    "prompt": "Move a file named 'notes.txt' from the Desktop to the Documents directory",
+    "response": "mv ~/Desktop/notes.txt ~/Documents/"
+  },
+  {
+    "prompt": "Create a new file named 'backup.sh' in the current directory",
+    "response": "touch backup.sh"
+  },
+  {
+    "prompt": "Show the current disk usage in the home directory",
+    "response": "du -sh ~"
+  },
+  {
+    "prompt": "Find all files with the '.md' extension in the /docs directory",
+    "response": "find /docs -name '*.md'"
+  },
+  {
+    "prompt": "Show the process ID of the current shell",
+    "response": "echo $$"
+  },
+  {
+    "prompt": "Start a new terminal session",
+    "response": "gnome-terminal"
+  },
+  {
+    "prompt": "Create a directory named 'project' and navigate into it",
+    "response": "mkdir project && cd project"
+  },
+  {
+    "prompt": "Create a backup of a directory named 'data' into a tar file",
+    "response": "tar -cvf data_backup.tar ~/data"
+  },
+  {
+    "prompt": "Show the list of all running services",
+    "response": "systemctl list-units --type=service"
+  },
+  {
+    "prompt": "Change the permissions of a file named 'test.sh' to be executable",
+    "response": "chmod +x test.sh"
+  },
+  {
+    "prompt": "Check the status of the system's firewall",
+    "response": "sudo ufw status"
+  },
+  {
+    "prompt": "Start a Python HTTP server on port 9000",
+    "response": "python3 -m http.server 9000"
+  },
+  {
+    "prompt": "Find and remove all files with the '.bak' extension in the /home directory",
+    "response": "find /home -name '*.bak' -exec rm {} +"
+  },
+  {
+    "prompt": "Show the top 5 most memory-consuming processes",
+    "response": "ps aux --sort=-%mem | head -n 5"
+  },
+  {
+    "prompt": "Create a symbolic link to a file named 'file.txt' with the name 'link.txt'",
+    "response": "ln -s file.txt link.txt"
+  },
+  {
+    "prompt": "Display the available storage on the system's partitions",
+    "response": "df -h"
+  },
+  {
+    "prompt": "Display the current date and time in ISO format",
+    "response": "date --iso-8601"
+  },
+  {
+    "prompt": "Delete all files with the '.bak' extension in the /var directory",
+    "response": "find /var -name '*.bak' -exec rm {} +"
+  },
+  {
+    "prompt": "Show the list of all files in the /home/user directory",
+    "response": "ls /home/user"
+  },
+  {
+    "prompt": "Find and list all files modified in the last 24 hours",
+    "response": "find . -mtime -1"
+  },
+  {
+    "prompt": "Create a new directory called 'projects' inside the current directory",
+    "response": "mkdir projects"
+  },
+  {
+    "prompt": "Change the permissions of a file named 'script.sh' to 755",
+    "response": "chmod 755 script.sh"
+  },
+  {
+    "prompt": "Check the system's network interfaces",
+    "response": "ifconfig"
+  },
+  {
+    "prompt": "Display the details of a file named 'file.txt'",
+    "response": "ls -l file.txt"
+  },
+  {
+    "prompt": "Create a backup of a directory named 'docs' into docs_backup.tar.gz",
+    "response": "tar -czvf docs_backup.tar.gz ~/docs"
+  },
+  {
+    "prompt": "Remove a directory called 'old_files' and its contents",
+    "response": "rm -rf old_files"
+  },
+  {
+    "prompt": "Open a website 'https://example.com' in the default browser",
+    "response": "xdg-open 'https://example.com'"
+  },
+  {
+    "prompt": "Find all files larger than 100MB in the current directory",
+    "response": "find . -size +100M"
+  },
+  {
+    "prompt": "Create a symbolic link for a file 'data.txt' to 'data_link.txt'",
+    "response": "ln -s data.txt data_link.txt"
+  },
+  {
+    "prompt": "Start a server using Node.js in the current directory",
+    "response": "node server.js"
+  },
+  {
+    "prompt": "Show the top 5 largest directories in the home folder",
+    "response": "du -sh ~/* | sort -rh | head -n 5"
+  },
+  {
+    "prompt": "Change the current working directory to '/var/log'",
+    "response": "cd /var/log"
+  },
+  {
+    "prompt": "Show all active system services",
+    "response": "systemctl list-units --type=service"
+  },
+  {
+    "prompt": "Install the 'vim' editor on a Debian-based system",
+    "response": "sudo apt install vim"
+  },
+  {
+    "prompt": "Check the system's disk usage in the home directory",
+    "response": "du -sh ~"
+  },
+  {
+    "prompt": "Delete all files in the 'temp' directory",
+    "response": "rm -rf ~/temp/*"
+  },
+  {
+    "prompt": "Display the top 10 most CPU-consuming processes",
+    "response": "ps aux --sort=-%cpu | head -n 10"
+  },
+  {
+    "prompt": "Change the current directory to the root directory",
+    "response": "cd /"
+  },
+  {
+    "prompt": "Show the details of the file 'data.csv'",
+    "response": "ls -l data.csv"
+  },
+  {
+    "prompt": "Create a tar archive named 'backup.tar' containing all files in the current directory",
+    "response": "tar -cvf backup.tar *"
+  },
+  {
+    "prompt": "Check the current system's memory usage",
+    "response": "free -h"
+  },
+  {
+    "prompt": "Remove the 'backup.tar' file from the current directory",
+    "response": "rm backup.tar"
+  },
+  {
+    "prompt": "Install the 'wget' utility on a RedHat-based system",
+    "response": "sudo yum install wget"
+  },
+  {
+    "prompt": "Search for a string 'critical' in the file 'logfile.log'",
+    "response": "grep 'critical' logfile.log"
+  },
+  {
+    "prompt": "Start a new screen session",
+    "response": "screen"
+  },
+  {
+    "prompt": "Show the network interfaces on the system",
+    "response": "ip link show"
+  },
+  {
+    "prompt": "Create a directory named 'work' inside the home folder",
+    "response": "mkdir ~/work"
+  },
+  {
+    "prompt": "Display the last 10 lines of the system log",
+    "response": "tail -n 10 /var/log/syslog"
+  },
+  {
+    "prompt": "Show the list of all mounted file systems",
+    "response": "mount"
+  },
+  {
+    "prompt": "Display the top 10 largest files in the /home directory",
+    "response": "du -ah /home | sort -rh | head -n 10"
+  },
+  {
+    "prompt": "Show the process tree of the current system",
+    "response": "pstree"
+  },
+  {
+    "prompt": "Change the permissions of 'file1.txt' to allow write access for the owner only",
+    "response": "chmod 600 file1.txt"
+  },
+  {
+    "prompt": "Show the available disk space in a human-readable format",
+    "response": "df -h"
+  },
+  {
+    "prompt": "Display the current running processes",
+    "response": "ps aux"
+  },
+  {
+    "prompt": "Create a tar.gz backup of the '/home/user' directory",
+    "response": "tar -czvf home_backup.tar.gz /home/user"
+  },
+  {
+    "prompt": "Install the 'git' version control system on a Debian-based system",
+    "response": "sudo apt install git"
+  },
+  {
+    "prompt": "List all the files with the '.jpg' extension in the current directory",
+    "response": "find . -name '*.jpg'"
+  },
+  {
+    "prompt": "Find all empty directories in the system",
+    "response": "find / -type d -empty"
+  },
+  {
+    "prompt": "Copy a file named 'file1.txt' from the current directory to the /tmp directory",
+    "response": "cp file1.txt /tmp/"
+  },
+  {
+    "prompt": "List all active network connections",
+    "response": "netstat -tuln"
+  },
+  {
+    "prompt": "Check the status of a service named 'apache2'",
+    "response": "sudo systemctl status apache2"
+  },
+  {
+    "prompt": "Start the apache2 service",
+    "response": "sudo systemctl start apache2"
+  },
+  {
+    "prompt": "Display the last 100 lines of a log file 'server.log'",
+    "response": "tail -n 100 server.log"
+  },
+  {
+    "prompt": "Create a symbolic link for 'file.txt' called 'file_link.txt'",
+    "response": "ln -s file.txt file_link.txt"
+  },
+  {
+    "prompt": "Change the owner of 'file.txt' to user 'john'",
+    "response": "sudo chown john file.txt"
+  },
+  {
+    "prompt": "Check the available disk space on all mounted filesystems",
+    "response": "df -h"
+  },
+  {
+    "prompt": "Check the current system's hostname",
+    "response": "hostname"
+  },
+  {
+    "prompt": "Remove a directory named 'old_backup' and its contents",
+    "response": "rm -rf old_backup"
+  },
+  {
+    "prompt": "Install the 'curl' utility on a RedHat-based system",
+    "response": "sudo yum install curl"
+  },
+  {
+    "prompt": "Show the list of all installed packages on a Debian-based system",
+    "response": "dpkg --list"
+  },
+  {
+    "prompt": "Change the file permission of 'file2.sh' to 744",
+    "response": "chmod 744 file2.sh"
+  },
+  {
+    "prompt": "Show the memory usage of the system",
+    "response": "free -m"
+  },
+  {
+    "prompt": "Run a Python HTTP server on port 8000",
+    "response": "python3 -m http.server 8000"
+  },
+  {
+    "prompt": "Change the file permission of 'script.sh' to executable",
+    "response": "chmod +x script.sh"
+  },
+  {
+    "prompt": "Create a tar archive of the 'projects' directory",
+    "response": "tar -cvf projects.tar ~/projects"
+  },
+  {
+    "prompt": "Display the first 10 lines of a file named 'data.csv'",
+    "response": "head -n 10 data.csv"
+  },
+  {
+    "prompt": "Install the 'vim' editor on a RedHat-based system",
+    "response": "sudo yum install vim"
+  },
+  {
+    "prompt": "Remove all files older than 30 days in the 'logs' directory",
+    "response": "find ~/logs -type f -mtime +30 -exec rm {} +"
+  },
+  {
+    "prompt": "Change the current working directory to /var/www/html",
+    "response": "cd /var/www/html"
+  },
+  {
+    "prompt": "Display the current disk usage of the '/home' directory",
+    "response": "du -sh /home"
+  },
+  {
+    "prompt": "Start the MySQL service",
+    "response": "sudo systemctl start mysql"
+  },
+  {
+    "prompt": "Stop the MySQL service",
+    "response": "sudo systemctl stop mysql"
+  },
+  {
+    "prompt": "Check the status of the MySQL service",
+    "response": "sudo systemctl status mysql"
+  },
+  {
+    "prompt": "Create a directory named 'backup' in the /var folder",
+    "response": "sudo mkdir /var/backup"
+  },
+  {
+    "prompt": "Delete the directory 'old_data' and all its contents",
+    "response": "rm -rf old_data"
+  },
+  {
+    "prompt": "Open the current directory in the Nautilus file manager",
+    "response": "nautilus ."
+  },
+  {
+    "prompt": "Show the top 5 most memory-consuming processes",
+    "response": "ps aux --sort=-%mem | head -n 5"
+  },
+  {
+    "prompt": "Show the disk usage for all mounted filesystems",
+    "response": "df -h"
+  },
+  {
+    "prompt": "List all files and directories in the /etc folder",
+    "response": "ls /etc"
+  },
+  {
+    "prompt": "Display the current system uptime",
+    "response": "uptime"
+  },
+  {
+    "prompt": "Search for the word 'fatal' in all log files in /var/log",
+    "response": "grep 'fatal' /var/log/*"
+  },
+  {
+    "prompt": "Change the group ownership of a file 'document.txt' to 'staff'",
+    "response": "sudo chgrp staff document.txt"
+  },
+  {
+    "prompt": "Check if a service 'nginx' is enabled to start on boot",
+    "response": "sudo systemctl is-enabled nginx"
+  },
+  {
+    "prompt": "Open LibreOffice Writer",
+    "response": "libreoffice --writer"
+  },
+  {
+    "prompt": "Open LibreOffice Calc",
+    "response": "libreoffice --calc"
+  },
+  {
+    "prompt": "Open Firefox browser",
+    "response": "firefox"
+  },
+  {
+    "prompt": "Open Google Chrome browser",
+    "response": "google-chrome"
+  },
+  {
+    "prompt": "Turn on WiFi",
+    "response": "nmcli radio wifi on"
+  },
+  {
+    "prompt": "Turn off WiFi",
+    "response": "nmcli radio wifi off"
+  },
+  {
+    "prompt": "Turn on Bluetooth",
+    "response": "sudo systemctl start bluetooth"
+  },
+  {
+    "prompt": "Turn off Bluetooth",
+    "response": "sudo systemctl stop bluetooth"
+  },
+  {
+    "prompt": "Open the GNOME calendar",
+    "response": "gnome-calendar"
+  },
+  {
+    "prompt": "Start the GNOME screenshot tool",
+    "response": "gnome-screenshot"
+  },
+  {
+    "prompt": "Open the terminal emulator",
+    "response": "gnome-terminal"
+  },
+  {
+    "prompt": "Open a file explorer window",
+    "response": "nautilus"
+  },
+  {
+    "prompt": "Turn on airplane mode",
+    "response": "nmcli radio all off"
+  },
+  {
+    "prompt": "Turn off airplane mode",
+    "response": "nmcli radio all on"
+  },
+  {
+    "prompt": "Open the system settings in GNOME",
+    "response": "gnome-control-center"
+  },
+  {
+    "prompt": "Start the file manager",
+    "response": "nautilus"
+  },
+  {
+    "prompt": "Open the system's network settings",
+    "response": "gnome-control-center network"
+  },
+  {
+    "prompt": "Turn off the system's firewall",
+    "response": "sudo ufw disable"
+  },
+  {
+    "prompt": "Turn on the system's firewall",
+    "response": "sudo ufw enable"
+  },
+  {
+    "prompt": "Show the list of available WiFi networks",
+    "response": "nmcli device wifi list"
+  },
+  {
+    "prompt": "Open the weather application",
+    "response": "gnome-weather"
+  },
+  {
+    "prompt": "Open the text editor Gedit",
+    "response": "gedit"
+  },
+  {
+    "prompt": "Connect to a Bluetooth device",
+    "response": "bluetoothctl connect <device-mac-address>"
+  },
+  {
+    "prompt": "Disconnect from a Bluetooth device",
+    "response": "bluetoothctl disconnect <device-mac-address>"
+  },
+  {
+    "prompt": "Open the music player application",
+    "response": "rhythmbox"
+  },
+  {
+    "prompt": "Open the photo viewer",
+    "response": "eog"
+  },
+  {
+    "prompt": "Open a PDF file in Evince",
+    "response": "evince file.pdf"
+  },
+  {
+    "prompt": "Enable the system's dark mode",
+    "response": "gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'"
+  },
+  {
+    "prompt": "Disable the system's dark mode",
+    "response": "gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita'"
+  },
+  {
+    "prompt": "Open the application manager to install new apps",
+    "response": "gnome-software"
+  },
+  {
+    "prompt": "Mute the system volume",
+    "response": "pactl set-sink-mute @DEFAULT_SINK@ 1"
+  },
+  {
+    "prompt": "Unmute the system volume",
+    "response": "pactl set-sink-mute @DEFAULT_SINK@ 0"
+  },
+  {
+    "prompt": "Lower the system volume",
+    "response": "pactl set-sink-volume @DEFAULT_SINK@ -5%"
+  },
+  {
+    "prompt": "Increase the system volume",
+    "response": "pactl set-sink-volume @DEFAULT_SINK@ +5%"
+  },
+  {
+    "prompt": "Turn off the system's audio",
+    "response": "amixer set Master mute"
+  },
+  {
+    "prompt": "Turn on the system's audio",
+    "response": "amixer set Master unmute"
+  },
+  {
+    "prompt": "Open the GNOME software updater",
+    "response": "gnome-software --updates"
+  },
+  {
+    "prompt": "Take a screenshot of the current screen",
+    "response": "gnome-screenshot -f screenshot.png"
+  },
+  {
+    "prompt": "Take a screenshot of a selected area",
+    "response": "gnome-screenshot -a"
+  },
+  {
+    "prompt": "Open the default text editor",
+    "response": "gedit"
+  },
+  {
+    "prompt": "Open the system monitor",
+    "response": "gnome-system-monitor"
+  },
+  {
+    "prompt": "Show WiFi status",
+    "response": "nmcli device status"
+  },
+  {
+    "prompt": "Turn off Bluetooth",
+    "response": "rfkill block bluetooth"
+  },
+  {
+    "prompt": "Turn on Bluetooth",
+    "response": "rfkill unblock bluetooth"
+  },
+  {
+    "prompt": "Turn on dark mode",
+    "response": "gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'"
+  },
+  {
+    "prompt": "Turn off dark mode",
+    "response": "gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita'"
+  },
+  {
+    "prompt": "Open Firefox browser in private mode",
+    "response": "firefox --private-window"
+  },
+  {
+    "prompt": "Install the VLC media player",
+    "response": "sudo apt install vlc"
+  },
+  {
+    "prompt": "Open VLC media player",
+    "response": "vlc"
+  },
+  {
+    "prompt": "Open Spotify",
+    "response": "spotify"
+  },
+  {
+    "prompt": "Check current network interfaces",
+    "response": "ip a"
+  },
+  {
+    "prompt": "Show active network connections",
+    "response": "ss -tuln"
+  },
+  {
+    "prompt": "Connect to a WiFi network 'MyNetwork'",
+    "response": "nmcli dev wifi connect 'MyNetwork'"
+  },
+  {
+    "prompt": "Disconnect from the current WiFi network",
+    "response": "nmcli dev disconnect wlan0"
+  },
+  {
+    "prompt": "Enable WiFi",
+    "response": "nmcli radio wifi on"
+  },
+  {
+    "prompt": "Disable WiFi",
+    "response": "nmcli radio wifi off"
+  },
+  {
+    "prompt": "Search for updates",
+    "response": "sudo apt update"
+  },
+  {
+    "prompt": "Upgrade all packages",
+    "response": "sudo apt upgrade -y"
+  },
+  {
+    "prompt": "Open the GNOME Calculator",
+    "response": "gnome-calculator"
+  },
+  {
+    "prompt": "Open the GNOME Screenshot Tool",
+    "response": "gnome-screenshot"
+  },
+  {
+    "prompt": "Check if Bluetooth is enabled",
+    "response": "rfkill list bluetooth"
+  },
+  {
+    "prompt": "Start the Docker service",
+    "response": "sudo systemctl start docker"
+  },
+  {
+    "prompt": "Stop the Docker service",
+    "response": "sudo systemctl stop docker"
+  },
+  {
+    "prompt": "Check the status of Docker service",
+    "response": "sudo systemctl status docker"
+  },
+  {
+    "prompt": "Launch the GNOME calendar",
+    "response": "gnome-calendar"
+  },
+  {
+    "prompt": "Show system's memory usage",
+    "response": "free -h"
+  },
+  {
+    "prompt": "Set system time to UTC",
+    "response": "timedatectl set-timezone UTC"
+  },
+  {
+    "prompt": "Display the system's current time",
+    "response": "date"
+  },
+  {
+    "prompt": "Turn off the screen",
+    "response": "xset dpms force off"
+  },
+  {
+    "prompt": "Enable the screen saver",
+    "response": "gnome-screensaver-command -a"
+  },
+  {
+    "prompt": "Disable the screen saver",
+    "response": "gnome-screensaver-command -d"
+  },
+  {
+    "prompt": "Open Google Chrome browser in incognito mode",
+    "response": "google-chrome --incognito"
+  },
+  {
+    "prompt": "Create a new folder named 'Documents' in the current directory",
+    "response": "mkdir Documents"
+  },
+  {
+    "prompt": "Copy a file from '/home/user/file.txt' to '/home/user/backup/'",
+    "response": "cp /home/user/file.txt /home/user/backup/"
+  },
+  {
+    "prompt": "Create a new user 'john' in the system",
+    "response": "sudo useradd john"
+  },
+  {
+    "prompt": "Delete the user 'john' from the system",
+    "response": "sudo userdel john"
+  },
+  {
+    "prompt": "Open the system's file manager",
+    "response": "nautilus"
+  },
+  {
+    "prompt": "Open the GNOME terminal",
+    "response": "gnome-terminal"
+  },
+  {
+    "prompt": "Start the Apache web server",
+    "response": "sudo systemctl start apache2"
+  },
+  {
+    "prompt": "Stop the Apache web server",
+    "response": "sudo systemctl stop apache2"
+  },
+  {
+    "prompt": "Check the status of the Apache web server",
+    "response": "sudo systemctl status apache2"
+  },
+  {
+    "prompt": "Restart the Apache web server",
+    "response": "sudo systemctl restart apache2"
+  },
+  {
+    "prompt": "Create a new directory called 'scripts' in the current directory",
+    "response": "mkdir scripts"
+  },
+  {
+    "prompt": "Open the current directory in the file explorer",
+    "response": "nautilus ."
+  },
+  {
+    "prompt": "Search for files with the '.txt' extension in the current directory",
+    "response": "find . -name '*.txt'"
+  },
+  {
+    "prompt": "Show the system's CPU usage",
+    "response": "top"
+  },
+  {
+    "prompt": "Show the system's disk usage",
+    "response": "df -h"
+  },
+  {
+    "prompt": "Create a symbolic link to the file 'data.txt' called 'data_link.txt'",
+    "response": "ln -s data.txt data_link.txt"
+  },
+  {
+    "prompt": "Remove a directory named 'temp_files' and all its contents",
+    "response": "rm -rf temp_files"
+  },
+  {
+    "prompt": "Run a Python HTTP server on port 8080",
+    "response": "python3 -m http.server 8080"
+  },
+  {
+    "prompt": "Change the file permission of 'example.sh' to 755",
+    "response": "chmod 755 example.sh"
+  },
+  {
+    "prompt": "Find all files larger than 50MB in the '/home' directory",
+    "response": "find /home -size +50M"
+  },
+  {
+    "prompt": "Start a new screen session",
+    "response": "screen"
+  },
+  {
+    "prompt": "Install the 'curl' tool",
+    "response": "sudo apt install curl"
+  },
+  {
+    "prompt": "Install the 'git' version control system",
+    "response": "sudo apt install git"
+  },
+  {
+    "prompt": "Check the current battery status",
+    "response": "upower -i /org/freedesktop/UPower/devices/battery_BAT0"
+  },
+  {
+    "prompt": "Create a new directory called 'backups' inside the home folder",
+    "response": "mkdir ~/backups"
+  },
+  {
+    "prompt": "Open the system's task manager",
+    "response": "gnome-system-monitor"
+  },
+  {
+    "prompt": "Show system information like OS version and architecture",
+    "response": "uname -a"
+  },
+  {
+    "prompt": "Check disk usage for the root directory",
+    "response": "du -sh /"
+  },
+  {
+    "prompt": "Show all installed packages on the system",
+    "response": "dpkg --list"
+  },
+  {
+    "prompt": "View the top 5 memory-consuming processes",
+    "response": "ps aux --sort=-%mem | head -n 5"
+  },
+  {
+    "prompt": "Search for a package 'vim' in the system's package manager",
+    "response": "apt-cache search vim"
+  },
+  {
+    "prompt": "Install the 'htop' utility for monitoring processes",
+    "response": "sudo apt install htop"
+  },
+  {
+    "prompt": "Check the active processes on the system",
+    "response": "ps aux"
+  },
+  {
+    "prompt": "Run a command as root using sudo",
+    "response": "sudo <command>"
+  },
+  {
+    "prompt": "Check if the system has any pending updates",
+    "response": "sudo apt update"
+  },
+  {
+    "prompt": "Upgrade all packages on the system",
+    "response": "sudo apt upgrade -y"
+  },
+  {
+    "prompt": "Clear the system's cache",
+    "response": "sudo apt clean"
+  },
+  {
+    "prompt": "Show the current user's home directory",
+    "response": "echo $HOME"
+  },
+  {
+    "prompt": "List all users on the system",
+    "response": "cut -d: -f1 /etc/passwd"
+  },
+  {
+    "prompt": "Check the system's available RAM",
+    "response": "free -m"
+  },
+  {
+    "prompt": "Show system's load average for the past 1, 5, and 15 minutes",
+    "response": "uptime"
+  },
+  {
+    "prompt": "Show the list of all active network connections",
+    "response": "ss -tuln"
+  },
+  {
+    "prompt": "Open LibreOffice Impress",
+    "response": "libreoffice --impress"
+  },
+  {
+    "prompt": "Open the system settings",
+    "response": "gnome-control-center"
+  },
+  {
+    "prompt": "Connect to a WiFi network 'HomeWiFi'",
+    "response": "nmcli dev wifi connect 'HomeWiFi'"
+  },
+  {
+    "prompt": "Enable Bluetooth",
+    "response": "sudo systemctl start bluetooth"
+  },
+  {
+    "prompt": "Disable Bluetooth",
+    "response": "sudo systemctl stop bluetooth"
+  },
+  {
+    "prompt": "Open the GNOME calculator",
+    "response": "gnome-calculator"
+  },
+  {
+    "prompt": "Update the system's package list",
+    "response": "sudo apt update"
+  },
+  {
+    "prompt": "Upgrade all installed packages on the system",
+    "response": "sudo apt upgrade -y"
+  },
+  {
+    "prompt": "Create a backup of a directory named 'important_files' to 'backup/'",
+    "response": "cp -r important_files/ backup/"
+  },
+  {
+    "prompt": "Install the VLC media player",
+    "response": "sudo apt install vlc"
+  },
+  {
+    "prompt": "Install Google Chrome browser",
+    "response": "sudo apt install google-chrome-stable"
+  },
+  {
+    "prompt": "Open the Chrome browser",
+    "response": "google-chrome"
+  },
+  {
+    "prompt": "Show a list of active user sessions",
+    "response": "who"
+  },
+  {
+    "prompt": "Show all mounted filesystems",
+    "response": "mount"
+  },
+  {
+    "prompt": "Show the system's current IP address",
+    "response": "hostname -I"
+  },
+  {
+    "prompt": "Start a Python HTTP server on port 8000",
+    "response": "python3 -m http.server 8000"
+  },
+  {
+    "prompt": "Install the Git version control system",
+    "response": "sudo apt install git"
+  },
+  {
+    "prompt": "Start the PostgreSQL service",
+    "response": "sudo systemctl start postgresql"
+  },
+  {
+    "prompt": "Stop the PostgreSQL service",
+    "response": "sudo systemctl stop postgresql"
+  },
+  {
+    "prompt": "Check the status of PostgreSQL",
+    "response": "sudo systemctl status postgresql"
+  },
+  {
+    "prompt": "Show the system's current uptime",
+    "response": "uptime"
+  },
+  {
+    "prompt": "Open the Firefox web browser",
+    "response": "firefox"
+  },
+  {
+    "prompt": "Open Google Chrome in private mode",
+    "response": "google-chrome --incognito"
+  },
+  {
+    "prompt": "Show the list of all users on the system",
+    "response": "cut -d: -f1 /etc/passwd"
+  },
+  {
+    "prompt": "Create a tar archive of a directory 'documents'",
+    "response": "tar -cvf documents.tar ~/documents"
+  },
+  {
+    "prompt": "Show the processes running on the system",
+    "response": "ps aux"
+  },
+  {
+    "prompt": "Change to the '/home/user/Downloads' directory",
+    "response": "cd ~/Downloads"
+  },
+  {
+    "prompt": "Show all active network connections",
+    "response": "ss -tuln"
+  },
+  {
+    "prompt": "Install Node.js on a Debian-based system",
+    "response": "sudo apt install nodejs"
+  },
+  {
+    "prompt": "Install npm package manager",
+    "response": "sudo apt install npm"
+  },
+  {
+    "prompt": "Run a Python file 'script.py'",
+    "response": "python3 script.py"
+  },
+  {
+    "prompt": "Run a Ruby script 'example.rb'",
+    "response": "ruby example.rb"
+  },
+  {
+    "prompt": "Create a zip archive of a directory 'photos'",
+    "response": "zip -r photos.zip ~/photos"
+  },
+  {
+    "prompt": "Extract a zip archive 'backup.zip'",
+    "response": "unzip backup.zip"
+  },
+  {
+    "prompt": "Create a new file called 'notes.txt'",
+    "response": "touch notes.txt"
+  },
+  {
+    "prompt": "Edit a file 'notes.txt' with the nano editor",
+    "response": "nano notes.txt"
+  },
+  {
+    "prompt": "Display the contents of a file 'README.md'",
+    "response": "cat README.md"
+  },
+  {
+    "prompt": "Copy the 'document.txt' file to '/home/user/Documents'",
+    "response": "cp document.txt ~/Documents/"
+  },
+  {
+    "prompt": "Move a file 'file.txt' to the '/tmp' directory",
+    "response": "mv file.txt /tmp/"
+  },
+  {
+    "prompt": "Delete a file 'old_file.txt'",
+    "response": "rm old_file.txt"
+  },
+  {
+    "prompt": "Display the current directory",
+    "response": "pwd"
+  },
+  {
+    "prompt": "List all files in the current directory",
+    "response": "ls"
+  },
+  {
+    "prompt": "Change the current directory to '/var/www/html'",
+    "response": "cd /var/www/html"
+  },
+  {
+    "prompt": "Show the disk usage of the root directory",
+    "response": "du -sh /"
+  },
+  {
+    "prompt": "Show system disk usage by file",
+    "response": "du -h"
+  },
+  {
+    "prompt": "Show the available disk space in a human-readable format",
+    "response": "df -h"
+  },
+  {
+    "prompt": "Check available memory",
+    "response": "free -m"
+  },
+  {
+    "prompt": "Show system's kernel version",
+    "response": "uname -r"
+  },
+  {
+    "prompt": "Create a new directory 'new_folder' in the current directory",
+    "response": "mkdir new_folder"
+  },
+  {
+    "prompt": "Open a new terminal window",
+    "response": "gnome-terminal"
+  },
+  {
+    "prompt": "List all processes on the system",
+    "response": "ps -ef"
+  },
+  {
+    "prompt": "Start a new screen session",
+    "response": "screen"
+  },
+  {
+    "prompt": "Create a symbolic link to 'file.txt' called 'file_link.txt'",
+    "response": "ln -s file.txt file_link.txt"
+  },
+  {
+    "prompt": "Display the network configuration",
+    "response": "ifconfig"
+  },
+  {
+    "prompt": "Change file permissions of 'file.sh' to 755",
+    "response": "chmod 755 file.sh"
+  },
+  {
+    "prompt": "Change the file owner of 'file.txt' to 'john'",
+    "response": "sudo chown john file.txt"
+  },
+  {
+    "prompt": "Show the list of installed Snap packages",
+    "response": "snap list"
+  },
+  {
+    "prompt": "Show the system uptime",
+    "response": "uptime"
+  },
+  {
+    "prompt": "Open LibreOffice Writer",
+    "response": "libreoffice --writer"
+  },
+  {
+    "prompt": "Open LibreOffice Calc",
+    "response": "libreoffice --calc"
+  },
+  {
+    "prompt": "Open the system's calendar",
+    "response": "gnome-calendar"
+  },
+  {
+    "prompt": "Install the 'curl' utility",
+    "response": "sudo apt install curl"
+  },
+  {
+    "prompt": "Update all installed packages",
+    "response": "sudo apt update && sudo apt upgrade -y"
+  },
+  {
+    "prompt": "Reboot the system",
+    "response": "sudo reboot"
+  },
+  {
+    "prompt": "Shutdown the system",
+    "response": "sudo shutdown now"
+  },
+  {
+    "prompt": "Suspend the system",
+    "response": "systemctl suspend"
+  },
+  {
+    "prompt": "Hibernate the system",
+    "response": "systemctl hibernate"
+  },
+  {
+    "prompt": "Check the status of the system's firewall",
+    "response": "sudo ufw status"
+  },
+  {
+    "prompt": "Enable the system's firewall",
+    "response": "sudo ufw enable"
+  },
+  {
+    "prompt": "Disable the system's firewall",
+    "response": "sudo ufw disable"
+  },
+  {
+    "prompt": "Allow SSH connections through the firewall",
+    "response": "sudo ufw allow ssh"
+  },
+  {
+    "prompt": "Block SSH connections through the firewall",
+    "response": "sudo ufw deny ssh"
+  },
+  {
+    "prompt": "List all open ports on the system",
+    "response": "ss -tuln"
+  },
+  {
+    "prompt": "Check if a port is open (e.g., port 22 for SSH)",
+    "response": "ss -tuln | grep :22"
+  },
+  {
+    "prompt": "Check the system logs for the last 10 entries",
+    "response": "journalctl -n 10"
+  },
+  {
+    "prompt": "Display the system's hostname",
+    "response": "hostname"
+  },
+  {
+    "prompt": "Change the system's hostname to 'newhostname'",
+    "response": "sudo hostnamectl set-hostname newhostname"
+  },
+  {
+    "prompt": "List all files in the current directory including hidden ones",
+    "response": "ls -a"
+  },
+  {
+    "prompt": "Show disk usage in human-readable format for the root directory",
+    "response": "du -h /"
+  },
+  {
+    "prompt": "Find all files with '.log' extension",
+    "response": "find . -name '*.log'"
+  },
+  {
+    "prompt": "Search for the word 'error' inside all '.log' files",
+    "response": "grep -r 'error' *.log"
+  },
+  {
+    "prompt": "Count the number of lines in a file",
+    "response": "wc -l <file_name>"
+  },
+  {
+    "prompt": "Display the first 10 lines of a file",
+    "response": "head -n 10 <file_name>"
+  },
+  {
+    "prompt": "Display the last 10 lines of a file",
+    "response": "tail -n 10 <file_name>"
+  },
+  {
+    "prompt": "Monitor the system's log file in real time",
+    "response": "tail -f /var/log/syslog"
+  },
+  {
+    "prompt": "Create an empty file named 'newfile.txt'",
+    "response": "touch newfile.txt"
+  },
+  {
+    "prompt": "Remove an empty directory called 'old_directory'",
+    "response": "rmdir old_directory"
+  },
+  {
+    "prompt": "Delete a file called 'unwanted_file.txt'",
+    "response": "rm unwanted_file.txt"
+  },
+  {
+    "prompt": "Move a file 'file.txt' from current directory to '/home/user/Downloads/'",
+    "response": "mv file.txt /home/user/Downloads/"
+  },
+  {
+    "prompt": "Change the current directory to '/etc'",
+    "response": "cd /etc"
+  },
+  {
+    "prompt": "Show the available disk space on the system",
+    "response": "df -h"
+  },
+  {
+    "prompt": "Get the current network IP address",
+    "response": "hostname -I"
+  },
+  {
+    "prompt": "Ping an IP address (e.g., 8.8.8.8)",
+    "response": "ping 8.8.8.8"
+  },
+  {
+    "prompt": "Check the current system's uptime",
+    "response": "uptime"
+  },
+  {
+    "prompt": "Check the system's available free space",
+    "response": "free -h"
+  },
+  {
+    "prompt": "Enable the system's WiFi",
+    "response": "nmcli radio wifi on"
+  },
+  {
+    "prompt": "Disable the system's WiFi",
+    "response": "nmcli radio wifi off"
+  },
+  {
+    "prompt": "Turn on Bluetooth",
+    "response": "sudo systemctl start bluetooth"
+  },
+  {
+    "prompt": "Turn off Bluetooth",
+    "response": "sudo systemctl stop bluetooth"
+  },
+  {
+    "prompt": "Install Python 3",
+    "response": "sudo apt install python3"
+  },
+  {
+    "prompt": "Install Python 3 pip",
+    "response": "sudo apt install python3-pip"
+  },
+  {
+    "prompt": "Check the current IP address of the system",
+    "response": "hostname -I"
+  },
+  {
+    "prompt": "Show the active network interfaces",
+    "response": "ifconfig"
+  },
+  {
+    "prompt": "List all active network connections",
+    "response": "ss -tuln"
+  },
+  {
+    "prompt": "Change the system hostname to 'new_hostname'",
+    "response": "sudo hostnamectl set-hostname new_hostname"
+  },
+  {
+    "prompt": "List all the users on the system",
+    "response": "cat /etc/passwd"
+  },
+  {
+    "prompt": "Create a new user 'john'",
+    "response": "sudo adduser john"
+  },
+  {
+    "prompt": "Delete the user 'john'",
+    "response": "sudo deluser john"
+  },
+  {
+    "prompt": "Give a user 'john' sudo privileges",
+    "response": "sudo usermod -aG sudo john"
+  },
+  {
+    "prompt": "List all active services on the system",
+    "response": "systemctl list-units --type=service"
+  },
+  {
+    "prompt": "Start a specific service (e.g., nginx)",
+    "response": "sudo systemctl start nginx"
+  },
+  {
+    "prompt": "Stop a specific service (e.g., nginx)",
+    "response": "sudo systemctl stop nginx"
+  },
+  {
+    "prompt": "Enable a service to start at boot (e.g., nginx)",
+    "response": "sudo systemctl enable nginx"
+  },
+  {
+    "prompt": "Disable a service from starting at boot (e.g., nginx)",
+    "response": "sudo systemctl disable nginx"
+  },
+  {
+    "prompt": "Check the status of a service (e.g., nginx)",
+    "response": "sudo systemctl status nginx"
+  },
+  {
+    "prompt": "Check for available updates on the system",
+    "response": "sudo apt update"
+  },
+  {
+    "prompt": "Upgrade the installed packages to the latest versions",
+    "response": "sudo apt upgrade -y"
+  },
+  {
+    "prompt": "Clean up unnecessary packages",
+    "response": "sudo apt autoremove"
+  },
+  {
+    "prompt": "Install a package (e.g., git)",
+    "response": "sudo apt install git"
+  },
+  {
+    "prompt": "Remove a package (e.g., git)",
+    "response": "sudo apt remove git"
+  },
+  {
+    "prompt": "Install a snap package (e.g., vlc)",
+    "response": "sudo snap install vlc"
+  },
+  {
+    "prompt": "Remove a snap package (e.g., vlc)",
+    "response": "sudo snap remove vlc"
+  },
+  {
+    "prompt": "Search for a package in the APT repository (e.g., vim)",
+    "response": "apt-cache search vim"
+  },
+  {
+    "prompt": "Search for a package in the Snap store (e.g., vlc)",
+    "response": "snap find vlc"
+  },
+  {
+    "prompt": "Create a new directory 'work_docs' in the home folder",
+    "response": "mkdir ~/work_docs"
+  },
+  {
+    "prompt": "Create an empty file 'newfile.txt' in the current directory",
+    "response": "touch newfile.txt"
+  },
+  {
+    "prompt": "Copy the file 'document.txt' to the '/home/user/Documents/' directory",
+    "response": "cp document.txt ~/Documents/"
+  },
+  {
+    "prompt": "Move the file 'document.txt' to the '/home/user/Documents/' directory",
+    "response": "mv document.txt ~/Documents/"
+  },
+  {
+    "prompt": "Delete the file 'old_file.txt'",
+    "response": "rm old_file.txt"
+  },
+  {
+    "prompt": "Remove an empty directory 'empty_folder'",
+    "response": "rmdir empty_folder"
+  },
+  {
+    "prompt": "List the contents of a directory with detailed information",
+    "response": "ls -l"
+  },
+  {
+    "prompt": "Display the contents of a file 'file.txt'",
+    "response": "cat file.txt"
+  },
+  {
+    "prompt": "Show the first 10 lines of the file 'file.txt'",
+    "response": "head file.txt"
+  },
+  {
+    "prompt": "Show the last 10 lines of the file 'file.txt'",
+    "response": "tail file.txt"
+  },
+  {
+    "prompt": "Show the disk usage of the root directory in human-readable format",
+    "response": "du -h /"
+  },
+  {
+    "prompt": "Show the available disk space in a human-readable format",
+    "response": "df -h"
+  },
+  {
+    "prompt": "Check memory usage in human-readable format",
+    "response": "free -h"
+  },
+  {
+    "prompt": "Show CPU usage in real-time",
+    "response": "top"
+  },
+  {
+    "prompt": "Monitor real-time system logs",
+    "response": "tail -f /var/log/syslog"
+  },
+  {
+    "prompt": "Search for the string 'error' in all logs",
+    "response": "grep -r 'error' /var/log/*"
+  },
+  {
+    "prompt": "Create a compressed zip file 'backup.zip' from the 'backup' folder",
+    "response": "zip -r backup.zip ~/backup"
+  },
+  {
+    "prompt": "Extract the contents of a zip file 'backup.zip'",
+    "response": "unzip backup.zip"
+  },
+  {
+    "prompt": "Create a tarball 'archive.tar' from the 'data' directory",
+    "response": "tar -cvf archive.tar ~/data"
+  },
+  {
+    "prompt": "Extract the contents of a tarball 'archive.tar'",
+    "response": "tar -xvf archive.tar"
+  },
+  {
+    "prompt": "Show the last 100 lines of the system log",
+    "response": "tail -n 100 /var/log/syslog"
+  },
+  {
+    "prompt": "Show the current system date and time",
+    "response": "date"
+  },
+  {
+    "prompt": "Set the system date to '2025-04-17'",
+    "response": "sudo date --set='2025-04-17'"
+  },
+  {
+    "prompt": "Show the current system uptime",
+    "response": "uptime"
+  },
+  {
+    "prompt": "Shut down the system immediately",
+    "response": "sudo shutdown now"
+  },
+  {
+    "prompt": "Reboot the system",
+    "response": "sudo reboot"
+  },
+  {
+    "prompt": "Suspend the system",
+    "response": "systemctl suspend"
+  },
+  {
+    "prompt": "Hibernate the system",
+    "response": "systemctl hibernate"
+  },
+  {
+    "prompt": "Change file permissions of 'file.txt' to read and write for owner only",
+    "response": "chmod 600 file.txt"
+  },
+  {
+    "prompt": "Change file ownership of 'file.txt' to user 'john'",
+    "response": "sudo chown john file.txt"
+  },
+  {
+    "prompt": "Check if a service is active (e.g., nginx)",
+    "response": "sudo systemctl is-active nginx"
+  },
+  {
+    "prompt": "Check the list of active users on the system",
+    "response": "who"
+  },
+  {
+    "prompt": "Show all the groups a user belongs to",
+    "response": "groups <username>"
+  },
+  {
+    "prompt": "Change the password of user 'john'",
+    "response": "sudo passwd john"
+  },
+  {
+    "prompt": "List all running processes",
+    "response": "ps aux"
+  },
+  {
+    "prompt": "Search for a running process (e.g., 'apache')",
+    "response": "ps aux | grep apache"
+  },
+  {
+    "prompt": "Kill a process by its PID (e.g., PID 1234)",
+    "response": "kill 1234"
+  },
+  {
+    "prompt": "Show the system's current hostname",
+    "response": "hostname"
+  },
+  {
+    "prompt": "Change the system's hostname to 'myserver'",
+    "response": "sudo hostnamectl set-hostname myserver"
+  },
+  {
+    "prompt": "List all active Bluetooth devices",
+    "response": "bluetoothctl devices"
+  },
+  {
+    "prompt": "Scan for available Bluetooth devices",
+    "response": "bluetoothctl scan on"
+  },
+  {
+    "prompt": "Connect to a Bluetooth device (e.g., 'XX:XX:XX:XX:XX:XX')",
+    "response": "bluetoothctl connect XX:XX:XX:XX:XX:XX"
+  },
+  {
+    "prompt": "Enable system-wide firewall with UFW",
+    "response": "sudo ufw enable"
+  },
+  {
+    "prompt": "Disable the firewall using UFW",
+    "response": "sudo ufw disable"
+  },
+  {
+    "prompt": "Allow incoming SSH connections through the firewall",
+    "response": "sudo ufw allow ssh"
+  },
+  {
+    "prompt": "Allow HTTP connections through the firewall",
+    "response": "sudo ufw allow http"
+  },
+  {
+    "prompt": "Allow HTTPS connections through the firewall",
+    "response": "sudo ufw allow https"
+  },
+  {
+    "prompt": "Check the firewall status",
+    "response": "sudo ufw status"
+  },
+  {
+    "prompt": "Open port 8080 for incoming traffic",
+    "response": "sudo ufw allow 8080"
+  },
+  {
+    "prompt": "Block incoming traffic on port 22",
+    "response": "sudo ufw deny 22"
+  },
+  {
+    "prompt": "Show the current IP routing table",
+    "response": "netstat -r"
+  },
+  {
+    "prompt": "Enable the SSH service to start on boot",
+    "response": "sudo systemctl enable ssh"
+  },
+  {
+    "prompt": "Disable the SSH service from starting on boot",
+    "response": "sudo systemctl disable ssh"
+  },
+  {
+    "prompt": "Start the SSH service manually",
+    "response": "sudo systemctl start ssh"
+  },
+  {
+    "prompt": "Stop the SSH service manually",
+    "response": "sudo systemctl stop ssh"
+  },
+  {
+    "prompt": "Restart the SSH service",
+    "response": "sudo systemctl restart ssh"
+  },
+  {
+    "prompt": "Check if the SSH service is running",
+    "response": "sudo systemctl status ssh"
+  },
+  {
+    "prompt": "Install and configure NGINX web server",
+    "response": "sudo apt install nginx"
+  },
+  {
+    "prompt": "Start the NGINX service",
+    "response": "sudo systemctl start nginx"
+  },
+  {
+    "prompt": "Enable NGINX to start on boot",
+    "response": "sudo systemctl enable nginx"
+  },
+  {
+    "prompt": "Stop the NGINX service",
+    "response": "sudo systemctl stop nginx"
+  },
+  {
+    "prompt": "Restart the NGINX service",
+    "response": "sudo systemctl restart nginx"
+  },
+  {
+    "prompt": "Check the status of NGINX service",
+    "response": "sudo systemctl status nginx"
+  },
+  {
+    "prompt": "Open the website hosted by NGINX in Firefox",
+    "response": "firefox http://localhost"
+  },
+  {
+    "prompt": "Check the status of all active network connections",
+    "response": "ss -tuln"
+  },
+  {
+    "prompt": "List the active users currently logged into the system",
+    "response": "who"
+  },
+  {
+    "prompt": "List the currently active processes",
+    "response": "ps aux"
+  },
+  {
+    "prompt": "Kill a running process by its process ID (PID), for example PID 1234",
+    "response": "kill 1234"
+  },
+  {
+    "prompt": "Search for a process (e.g., 'firefox') in the list of running processes",
+    "response": "ps aux | grep firefox"
+  },
+  {
+    "prompt": "Show the memory usage in a human-readable format",
+    "response": "free -h"
+  },
+  {
+    "prompt": "Show the CPU usage in real-time",
+    "response": "top"
+  },
+  {
+    "prompt": "Install Docker on the system",
+    "response": "sudo apt install docker.io"
+  },
+  {
+    "prompt": "Start Docker service",
+    "response": "sudo systemctl start docker"
+  },
+  {
+    "prompt": "Enable Docker to start on boot",
+    "response": "sudo systemctl enable docker"
+  },
+  {
+    "prompt": "Stop Docker service",
+    "response": "sudo systemctl stop docker"
+  },
+  {
+    "prompt": "Check the status of Docker service",
+    "response": "sudo systemctl status docker"
+  },
+  {
+    "prompt": "Pull an image from Docker Hub (e.g., 'nginx' image)",
+    "response": "sudo docker pull nginx"
+  },
+  {
+    "prompt": "Run a Docker container using the 'nginx' image",
+    "response": "sudo docker run -d -p 80:80 nginx"
+  },
+  {
+    "prompt": "List all running Docker containers",
+    "response": "sudo docker ps"
+  },
+  {
+    "prompt": "Stop a running Docker container by container ID",
+    "response": "sudo docker stop <container_id>"
+  },
+  {
+    "prompt": "Remove a Docker container by container ID",
+    "response": "sudo docker rm <container_id>"
+  },
+  {
+    "prompt": "Remove a Docker image by image name",
+    "response": "sudo docker rmi nginx"
+  },
+  {
+    "prompt": "Show the list of all installed Snap packages",
+    "response": "snap list"
+  },
+  {
+    "prompt": "Install a Snap package (e.g., VLC)",
+    "response": "sudo snap install vlc"
+  },
+  {
+    "prompt": "Remove a Snap package (e.g., VLC)",
+    "response": "sudo snap remove vlc"
+  },
+  {
+    "prompt": "Show the list of all installed APT packages",
+    "response": "dpkg --get-selections"
+  },
+  {
+    "prompt": "Search for a package in APT repositories (e.g., 'nginx')",
+    "response": "apt-cache search nginx"
+  },
+  {
+    "prompt": "Install a package using APT (e.g., 'git')",
+    "response": "sudo apt install git"
+  },
+  {
+    "prompt": "Remove a package using APT (e.g., 'git')",
+    "response": "sudo apt remove git"
+  },
+  {
+    "prompt": "Upgrade all packages on the system",
+    "response": "sudo apt upgrade -y"
+  },
+  {
+    "prompt": "Clean up unneeded packages and dependencies",
+    "response": "sudo apt autoremove"
+  },
+  {
+    "prompt": "Show the list of all network interfaces",
+    "response": "ip a"
+  },
+  {
+    "prompt": "Disable a specific network interface (e.g., 'eth0')",
+    "response": "sudo ip link set eth0 down"
+  },
+  {
+    "prompt": "Enable a specific network interface (e.g., 'eth0')",
+    "response": "sudo ip link set eth0 up"
+  },
+  {
+    "prompt": "Restart a specific network interface (e.g., 'eth0')",
+    "response": "sudo ifdown eth0 && sudo ifup eth0"
+  },
+  {
+    "prompt": "Connect to a Wi-Fi network 'WiFiNetwork' using WPA2 security",
+    "response": "nmcli dev wifi connect WiFiNetwork password 'your_password'"
+  },
+  {
+    "prompt": "List all available Wi-Fi networks",
+    "response": "nmcli dev wifi"
+  },
+  {
+    "prompt": "Disconnect from the current Wi-Fi network",
+    "response": "nmcli dev disconnect wlan0"
+  },
+  {
+    "prompt": "Enable the Wi-Fi interface",
+    "response": "nmcli radio wifi on"
+  },
+  {
+    "prompt": "Disable the Wi-Fi interface",
+    "response": "nmcli radio wifi off"
+  },
+  {
+    "prompt": "Enable Bluetooth",
+    "response": "sudo systemctl start bluetooth"
+  },
+  {
+    "prompt": "Disable Bluetooth",
+    "response": "sudo systemctl stop bluetooth"
+  },
+  {
+    "prompt": "Connect to a Bluetooth device (e.g., 'XX:XX:XX:XX:XX:XX')",
+    "response": "bluetoothctl connect XX:XX:XX:XX:XX:XX"
+  },
+  {
+    "prompt": "List all Bluetooth devices",
+    "response": "bluetoothctl devices"
+  },
+  {
+    "prompt": "Scan for available Bluetooth devices",
+    "response": "bluetoothctl scan on"
+  },
+  {
+    "prompt": "Open the Bluetooth settings GUI",
+    "response": "gnome-bluetooth"
+  },
+  {
+    "prompt": "List all active Bluetooth connections",
+    "response": "bluetoothctl paired-devices"
+  },
+  {
+    "prompt": "Disconnect from a Bluetooth device",
+    "response": "bluetoothctl disconnect XX:XX:XX:XX:XX:XX"
+  },
+  {
+    "prompt": "Configure and enable firewall with UFW on the system",
+    "response": "sudo ufw enable"
+  },
+  {
+    "prompt": "Set default deny rule for the firewall, blocking all incoming traffic",
+    "response": "sudo ufw default deny incoming"
+  },
+  {
+    "prompt": "Allow all outgoing traffic through the firewall",
+    "response": "sudo ufw default allow outgoing"
+  },
+  {
+    "prompt": "Allow a specific port (e.g., 443 for HTTPS) through the firewall",
+    "response": "sudo ufw allow 443"
+  },
+  {
+    "prompt": "Allow access to a specific IP address (e.g., 192.168.1.100) through the firewall",
+    "response": "sudo ufw allow from 192.168.1.100"
+  },
+  {
+    "prompt": "Allow incoming SSH connections on a specific port (e.g., 2222)",
+    "response": "sudo ufw allow 2222/tcp"
+  },
+  {
+    "prompt": "Check the firewall status and current rules",
+    "response": "sudo ufw status verbose"
+  },
+  {
+    "prompt": "Disable the firewall completely on the system",
+    "response": "sudo ufw disable"
+  },
+  {
+    "prompt": "Allow incoming HTTP traffic on port 80 through the firewall",
+    "response": "sudo ufw allow http"
+  },
+  {
+    "prompt": "Allow incoming HTTPS traffic on port 443 through the firewall",
+    "response": "sudo ufw allow https"
+  },
+  {
+    "prompt": "Show the list of all active systemd services and their status",
+    "response": "systemctl list-units --type=service"
+  },
+  {
+    "prompt": "Start a specific service (e.g., NGINX) on the system",
+    "response": "sudo systemctl start nginx"
+  },
+  {
+    "prompt": "Stop a running service (e.g., NGINX) on the system",
+    "response": "sudo systemctl stop nginx"
+  },
+  {
+    "prompt": "Restart a specific service (e.g., NGINX) on the system",
+    "response": "sudo systemctl restart nginx"
+  },
+  {
+    "prompt": "Enable a service (e.g., NGINX) to start automatically at boot",
+    "response": "sudo systemctl enable nginx"
+  },
+  {
+    "prompt": "Disable a service (e.g., NGINX) from starting at boot",
+    "response": "sudo systemctl disable nginx"
+  },
+  {
+    "prompt": "Check the status of a service (e.g., NGINX) to ensure it is running",
+    "response": "sudo systemctl status nginx"
+  },
+  {
+    "prompt": "List all running processes on the system",
+    "response": "ps aux"
+  },
+  {
+    "prompt": "Search for a specific process (e.g., 'apache2') by name",
+    "response": "ps aux | grep apache2"
+  },
+  {
+    "prompt": "Kill a specific running process using its process ID (e.g., 1234)",
+    "response": "sudo kill 1234"
+  },
+  {
+    "prompt": "Find the process ID of a running application (e.g., 'firefox')",
+    "response": "pgrep firefox"
+  },
+  {
+    "prompt": "Display real-time CPU usage with detailed information",
+    "response": "top"
+  },
+  {
+    "prompt": "Monitor system resources (CPU, memory, etc.) in real-time with htop",
+    "response": "htop"
+  },
+  {
+    "prompt": "Install the latest stable version of Docker on the system",
+    "response": "sudo apt install docker.io"
+  },
+  {
+    "prompt": "Start the Docker service to allow container management",
+    "response": "sudo systemctl start docker"
+  },
+  {
+    "prompt": "Enable Docker service to start automatically at system boot",
+    "response": "sudo systemctl enable docker"
+  },
+  {
+    "prompt": "Pull the latest 'nginx' Docker image from Docker Hub",
+    "response": "sudo docker pull nginx"
+  },
+  {
+    "prompt": "Run a Docker container from the 'nginx' image in detached mode and bind port 80",
+    "response": "sudo docker run -d -p 80:80 nginx"
+  },
+  {
+    "prompt": "List all active Docker containers running on the system",
+    "response": "sudo docker ps"
+  },
+  {
+    "prompt": "Stop a running Docker container using its container ID",
+    "response": "sudo docker stop <container_id>"
+  },
+  {
+    "prompt": "Remove a Docker container by its container ID",
+    "response": "sudo docker rm <container_id>"
+  },
+  {
+    "prompt": "Remove a Docker image by image name (e.g., 'nginx')",
+    "response": "sudo docker rmi nginx"
+  },
+  {
+    "prompt": "View the logs of a specific Docker container",
+    "response": "sudo docker logs <container_id>"
+  },
+  {
+    "prompt": "Search for available Docker images on Docker Hub",
+    "response": "sudo docker search nginx"
+  },
+  {
+    "prompt": "Check for Docker updates and upgrade the Docker installation",
+    "response": "sudo apt update && sudo apt upgrade docker.io"
+  },
+  {
+    "prompt": "Install Python 3 and pip for managing Python packages",
+    "response": "sudo apt install python3 python3-pip"
+  },
+  {
+    "prompt": "Install a specific Python package (e.g., requests) using pip",
+    "response": "pip3 install requests"
+  },
+  {
+    "prompt": "Check the installed Python packages on the system",
+    "response": "pip3 list"
+  },
+  {
+    "prompt": "Upgrade an installed Python package (e.g., requests) to the latest version",
+    "response": "pip3 install --upgrade requests"
+  },
+  {
+    "prompt": "Uninstall a Python package (e.g., requests)",
+    "response": "pip3 uninstall requests"
+  },
+  {
+    "prompt": "Show the current system date and time",
+    "response": "date"
+  },
+  {
+    "prompt": "Change the system date to '2025-04-17'",
+    "response": "sudo date --set='2025-04-17'"
+  },
+  {
+    "prompt": "Show the system uptime (time since last reboot)",
+    "response": "uptime"
+  },
+  {
+    "prompt": "Shutdown the system immediately",
+    "response": "sudo shutdown now"
+  },
+  {
+    "prompt": "Reboot the system immediately",
+    "response": "sudo reboot"
+  },
+  {
+    "prompt": "Suspend the system to save power",
+    "response": "sudo systemctl suspend"
+  },
+  {
+    "prompt": "Hibernate the system (requires hibernation setup)",
+    "response": "sudo systemctl hibernate"
+  },
+  {
+    "prompt": "Enable a Wi-Fi network interface (e.g., wlan0)",
+    "response": "sudo ip link set wlan0 up"
+  },
+  {
+    "prompt": "Disable a Wi-Fi network interface (e.g., wlan0)",
+    "response": "sudo ip link set wlan0 down"
+  },
+  {
+    "prompt": "Connect to a Wi-Fi network (e.g., 'WiFiNetwork') with WPA2 security",
+    "response": "nmcli dev wifi connect WiFiNetwork password 'your_password'"
+  },
+  {
+    "prompt": "List available Wi-Fi networks in the vicinity",
+    "response": "nmcli dev wifi"
+  },
+  {
+    "prompt": "Disconnect from the current Wi-Fi network",
+    "response": "nmcli dev disconnect wlan0"
+  },
+  {
+    "prompt": "Turn off Wi-Fi on the system",
+    "response": "nmcli radio wifi off"
+  },
+  {
+    "prompt": "Turn on Wi-Fi on the system",
+    "response": "nmcli radio wifi on"
+  },
+  {
+    "prompt": "Enable Bluetooth on the system",
+    "response": "sudo systemctl start bluetooth"
+  },
+  {
+    "prompt": "Disable Bluetooth on the system",
+    "response": "sudo systemctl stop bluetooth"
+  },
+  {
+    "prompt": "List paired Bluetooth devices",
+    "response": "bluetoothctl paired-devices"
+  },
+  {
+    "prompt": "Connect to a Bluetooth device by its MAC address",
+    "response": "bluetoothctl connect XX:XX:XX:XX:XX:XX"
+  },
+  {
+    "prompt": "Disconnect from a Bluetooth device",
+    "response": "bluetoothctl disconnect XX:XX:XX:XX:XX:XX"
+  },
+  {
+    "prompt": "Search for available Bluetooth devices",
+    "response": "bluetoothctl scan on"
+  },
+  {
+    "prompt": "Open the Bluetooth management GUI",
+    "response": "gnome-bluetooth"
+  },
+  {
+    "prompt": "Install the Apache HTTP server",
+    "response": "sudo apt install apache2"
+  },
+  {
+    "prompt": "Start the Apache service",
+    "response": "sudo systemctl start apache2"
+  },
+  {
+    "prompt": "Enable Apache to start on boot",
+    "response": "sudo systemctl enable apache2"
+  },
+  {
+    "prompt": "Stop the Apache service",
+    "response": "sudo systemctl stop apache2"
+  },
+  {
+    "prompt": "Restart the Apache service",
+    "response": "sudo systemctl restart apache2"
+  },
+  {
+    "prompt": "Check the status of the Apache service",
+    "response": "sudo systemctl status apache2"
+  }
+]

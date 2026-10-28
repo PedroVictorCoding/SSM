@@ -1,0 +1,25 @@
+Windows-native WGPU installation verification
+Date: 2026-10-25
+
+Install command:
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File <repo>/scripts/install.ps1 -Backend wgpu
+
+Result: exit 0
+Installed executable:
+C:\Users\pedro\scoop\persist\rustup\.cargo\bin\sail.exe
+
+Fresh PowerShell resolution:
+SAIL_PATH=C:\Users\pedro\scoop\persist\rustup\.cargo\bin\sail.exe
+sail 0.1.0
+Final version-only health check: exit 0
+
+GPU initialization during one-token inference smoke:
+AMD Radeon RX 7800 XT | DiscreteGpu | Vulkan | AMD proprietary driver 26.3.1 (LLPC)
+
+The selected existing artifact
+runs/hf_gpu_20261025_075531/model.sea
+did not complete inference. After GPU initialization, Burn 0.16.1 panicked in
+burn-core/src/record/memory.rs while unwrapping a UTF-8 decoding error. This is a
+separate artifact loader/compatibility defect, not an installation or adapter
+discovery failure. The installed command remained healthy afterward and returned
+exit 0 for `sail --version`.

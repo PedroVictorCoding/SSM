@@ -365,6 +365,30 @@ impl BpeTokenizer {
         String::from_utf8_lossy(&bytes).to_string()
     }
 
+    /// Checks whether a token ID corresponds to EOS.
+    pub fn is_eos(&self, id: u32) -> bool {
+        id == self.eos_id
+    }
+
+    /// Returns the raw byte sequence corresponding to a token ID.
+    pub fn token_bytes(&self, id: u32) -> Vec<u8> {
+        if id == self.pad_id || id == self.eos_id {
+            Vec::new()
+        } else if id == self.tool_call_id {
+            SPECIAL_TOOL_CALL.as_bytes().to_vec()
+        } else if id == self.tool_call_end_id {
+            SPECIAL_TOOL_CALL_END.as_bytes().to_vec()
+        } else if id == self.tool_resp_id {
+            SPECIAL_TOOL_RESP.as_bytes().to_vec()
+        } else if id == self.tool_resp_end_id {
+            SPECIAL_TOOL_RESP_END.as_bytes().to_vec()
+        } else if let Some(bytes) = self.id_to_bytes.get(id as usize) {
+            bytes.clone()
+        } else {
+            Vec::new()
+        }
+    }
+
     /// Saves the BPE tokenizer to a JSON file.
     pub fn save(&self, path: impl AsRef<Path>) -> std::io::Result<()> {
         let json = serde_json::to_string_pretty(self)?;

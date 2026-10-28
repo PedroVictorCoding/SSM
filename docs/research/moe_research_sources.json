@@ -1,0 +1,89 @@
+{
+  "review_date": "2026-10-25",
+  "primary_document": {
+    "title": "Improving Performance of Mixture of Experts Large Language Models",
+    "author": "Jan Ludziejewski",
+    "document_date": "September 2025",
+    "repository_year": 2026,
+    "version": "1.0.1",
+    "url": "https://repozytorium.uw.edu.pl/server/api/core/bitstreams/44fbb658-4a84-4c15-9ddd-521aaabddf83/content",
+    "pages": 123,
+    "bytes": 5445737,
+    "sha256": "7b98544c8ba50d1f0b5bcf3e99e4f85533a80e207c393af172317e6c6700cacd",
+    "page_convention": "PDF viewer pages are 1-based; printed page numbers are one lower after the repository cover",
+    "sections_reviewed": [
+      "1.9",
+      "2.4",
+      "2.14",
+      "2.15",
+      "3.3",
+      "4.2",
+      "4.3",
+      "4.4",
+      "5.3",
+      "5.7",
+      "5.8",
+      "6.3",
+      "6.4"
+    ]
+  },
+  "status": "Research and reproduction plan; no SAIL speedup from these methods has been established here.",
+  "implementation_snapshot": {
+    "src/model/moe.rs": "ed2abcfc19dca7194fc19fc8f050c7a2580b1bd7d00571c1c2d826d3e11eb796",
+    "src/model/mmap_moe.rs": "fb362eb80a41c796dfff5d096e69821f975a0b91570dd8310fa032f33e63c783",
+    "src/model/hybrid.rs": "e0c3fcf6c24535e7414995c91eaa41d29edb6e9574954b686f38d8f3713d4a10",
+    "src/optim.rs": "d14b6cd3ed21efc1a6bb750a75a9bb8d16d765ee40239b23581f65cd1999204f",
+    "tests/test_moe_sparse.rs": "f90ff0c62eb2f8ccdbdbc89ff9ec18ebeba92eea014b58cb209448175a773cd6",
+    "tests/test_mmap_moe.rs": "56bf242b6798375fb08da535192dee180b2fac40e10f2972a4995fca321d6cea"
+  },
+  "additional_primary_sources": [
+    {
+      "id": "megablocks",
+      "paper": "https://arxiv.org/abs/2211.15841",
+      "code": "https://github.com/databricks/megablocks",
+      "scope": "sparse MoE training kernels; adaptation to WGPU required"
+    },
+    {
+      "id": "rlrs",
+      "paper": "https://arxiv.org/abs/2507.03526",
+      "code": "https://github.com/llm-random/llm-random",
+      "scope": "human-configured component learning-rate schedules"
+    },
+    {
+      "id": "granularity",
+      "paper": "https://arxiv.org/abs/2402.07871",
+      "code": "https://github.com/llm-random/llm-random",
+      "scope": "architecture/compute and memory matched training experiments"
+    },
+    {
+      "id": "moe-mamba",
+      "paper": "https://arxiv.org/abs/2401.04081v2",
+      "code": "https://github.com/llm-random/llm-random",
+      "scope": "SSM/MoE architectural ablations"
+    },
+    {
+      "id": "fiddler",
+      "paper": "https://arxiv.org/abs/2402.07033v3",
+      "code": "https://github.com/efeslab/fiddler",
+      "scope": "CPU/GPU inference placement"
+    },
+    {
+      "id": "moe-infinity",
+      "paper": "https://arxiv.org/abs/2401.14361v3",
+      "code": "https://github.com/EfficientMoE/MoE-Infinity",
+      "scope": "expert inference caching and prefetch"
+    },
+    {
+      "id": "awq",
+      "paper": "https://arxiv.org/abs/2306.00978",
+      "code": "https://github.com/mit-han-lab/llm-awq",
+      "scope": "lossy weight-only inference quantization"
+    },
+    {
+      "id": "speculative-decoding",
+      "paper": "https://arxiv.org/abs/2211.17192v2",
+      "code": null,
+      "scope": "distribution-preserving speculative inference; no upstream implementation verified here"
+    }
+  ]
+}

@@ -194,7 +194,7 @@ impl HybridLmConfig {
 }
 
 impl<B: Backend> Block<B> {
-    fn forward_with_state(
+    pub(crate) fn forward_with_state(
         &self,
         x: Tensor<B, 3>,
     ) -> (Tensor<B, 3>, LayerState<B>, Option<Tensor<B, 1>>) {
@@ -215,7 +215,11 @@ impl<B: Backend> Block<B> {
         (out, state, aux)
     }
 
-    fn step(&self, x: Tensor<B, 2>, state: LayerState<B>) -> (Tensor<B, 2>, LayerState<B>) {
+    pub(crate) fn step(
+        &self,
+        x: Tensor<B, 2>,
+        state: LayerState<B>,
+    ) -> (Tensor<B, 2>, LayerState<B>) {
         let normed = self.norm.forward(x.clone());
         let (mixed, state) = match (&self.mamba, &self.attn, state) {
             (Some(m), _, LayerState::Mamba(s)) => {
@@ -390,17 +394,53 @@ impl<B: Backend> HybridLm<B> {
         state: HybridState<B>,
     ) -> (Tensor<B, 2>, HybridState<B>) {
         let batch = tokens.dims()[0];
-        let mut x: Tensor<B, 2> = self
+        let x: Tensor<B, 2> = self
             .embedding
             .forward(tokens.reshape([batch, 1]))
             .reshape([batch, self.embedding.weight.dims()[1]]);
+        self.step_embedding(x, state)
+    }
+
+    /// Evaluates pre-embedded sequence `[batch, len, d_model]` directly through the hybrid backbone.
+    pub fn forward_embeddings(&self, embeddings: Tensor<B, 3>) -> Tensor<B, 3> {
+        self.prefill_embeddings(embeddings).0
+    }
+
+    /// Processes pre-embedded sequence in parallel and returns `(logits, state after the last token)`.
+    pub fn prefill_embeddings(&self, embeddings: Tensor<B, 3>) -> (Tensor<B, 3>, HybridState<B>) {
+        let len = embeddings.dims()[1];
+        let mut x = embeddings;
         let mut layers = Vec::with_capacity(self.blocks.len());
-        for (block, s) in self.blocks.iter().zip(state.layers) {
-            let (y, s) = block.step(x, s);
+        for block in &self.blocks {
+            let (y, s, _) = block.forward_with_state(x);
             x = y;
             layers.push(s);
         }
         let logits = self.lm_head.forward(self.norm_f.forward(x));
+        (
+            logits,
+            HybridState {
+                layers,
+                position: len,
+            },
+        )
+    }
+
+    /// Consumes one embedded vector per sequence (`x`: `[batch, d_model]`) and returns next-token logits
+    /// `[batch, vocab]` together with the updated state.
+    pub fn step_embedding(
+        &self,
+        x: Tensor<B, 2>,
+        state: HybridState<B>,
+    ) -> (Tensor<B, 2>, HybridState<B>) {
+        let mut cur = x;
+        let mut layers = Vec::with_capacity(self.blocks.len());
+        for (block, s) in self.blocks.iter().zip(state.layers) {
+            let (y, s) = block.step(cur, s);
+            cur = y;
+            layers.push(s);
+        }
+        let logits = self.lm_head.forward(self.norm_f.forward(cur));
         (
             logits,
             HybridState {

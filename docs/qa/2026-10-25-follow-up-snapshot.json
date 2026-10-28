@@ -1,0 +1,14 @@
+{
+  "review": "REVIEW-20261025-02",
+  "hashes": {
+    "src/capability.rs": "16a93b7c0732c57f103fd1728b577eb1c813e118669a278c907bb44d2b2a27b9",
+    "src/tool/broker.rs": "c12d56eb79962e416669416b18ca64cb0d2d81efe12ac7e5096ddd5a5d23f6e7",
+    "src/tool/builtin.rs": "d36c8572bc901d59a3610dceb24bf545b16ee3c414356b2cacc3164c962b95c3",
+    "src/tool/workspace.rs": "22ed1a5f945185d1e50a2e7c050c1fbe8ec14fee2059b07b88dc0154507de7d9",
+    "src/runtime/verification.rs": "94c5b8baffad1d3c9bd198c82734a474a25e56658f35bf3d4fde21a454584502",
+    "tests/test_tool_execution_broker.rs": "d75bd4f946fd308eda61574a31fcc1f0320d818c3ca8ec8b0c1f1e219432e607",
+    "tests/test_outcome_verification.rs": "1e603b9b361b0af3744ccd8393904113439e1a6e5eb35722721156025f8a0cc3",
+    "docs/qa/trust_boundary_probe.rs": "8cf8a72ae299c4a3a554eb0fdcf531f5aa1eba899eb39f0e044417d5df7e0096",
+    "target/debug/deps/libsail-d0ef99ebc1b15d24.rlib": "87bad8e38f7372ac8ffa8d61d72fbbd8500b07a70636aca809a8a6971de589f2"
+  }
+}

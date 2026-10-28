@@ -1,0 +1,14 @@
+{
+  "reviewed_at": "2026-10-25",
+  "probe_sha256": "c9e02308c653a533b9a691fb59a26e2aa9060b1c3d3382781fb00c98b415ab05",
+  "compiled_sail_rlib": "target/debug/deps/libsail-d0ef99ebc1b15d24.rlib",
+  "compiled_sail_rlib_sha256": "d40a84a6090d194be7a5137b94da382c1f818e8d20ba5622e1a737cafe8174f5",
+  "broker_sha256": "ce19e1222bb6751d0e7342c7cd4a6ac8ae4260ff985c784d183e4ee3a5747c71",
+  "workspace_sha256": "cf9832130dc3c00d94b17c48785f59199b201cd71275993ef20e94a38cf65918",
+  "targeted_tests": {
+    "command": "cargo test --offline --test test_tool_execution_broker --test test_workspace_and_app_adapters",
+    "exit_code": 0,
+    "passed": 14,
+    "failed": 0
+  }
+}

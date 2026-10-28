@@ -1,0 +1,12 @@
+{
+  "reviewed_at": "2026-10-25",
+  "interactive_rs_sha256": "14b8c57d46ddc762436e7a3b26ffa87426eb1c77d642e0ba345420d97ff90822",
+  "main_rs_sha256": "a07acf07967f1d8ca0f478ce0cba9b259f5e81618885eb9c815e55211d03929b",
+  "install_sh_sha256": "759750e0865c127ba70edc3fc4f094f4c97f370e9541aad7bd1649433ffc6f04",
+  "install_ps1_sha256": "8f0e59cc01e9b2d1204cd230ccfd866dd78856044c465ba3ed26cf40858bdc89",
+  "readme_sha256": "22e33bc59a2e436d56ce5e11b1e45ac121826cdc7241aed01811a77ea4646bb0",
+  "wizard_tests": { "passed": 6, "failed": 0 },
+  "cpu_install_smoke": "passed",
+  "wgpu_compile_check": "passed",
+  "powershell_execution": "not available in Linux review environment"
+}

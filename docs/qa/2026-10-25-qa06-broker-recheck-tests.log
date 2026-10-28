@@ -1,0 +1,62 @@
+   Compiling sail v0.1.0 (/home/pedro/Dev/SSM)
+error[E0609]: no field `status` on type `IdempotencyRecord`
+   --> src/tool/broker.rs:292:29
+    |
+292 |                 match &prev.status {
+    |                             ^^^^^^ unknown field
+    |
+help: a field with a similar name exists
+    |
+292 -                 match &prev.status {
+292 +                 match &prev.state {
+    |
+
+error[E0609]: no field `call_id` on type `IdempotencyRecord`
+   --> src/tool/broker.rs:295:36
+    |
+295 |                         cached_res.call_id = proposal.call_id.clone();
+    |                                    ^^^^^^^ unknown field
+    |
+    = note: available fields are: `key`, `task_id`, `tool_name`, `tool_version`, `argument_digest` ... and 4 others
+
+error[E0609]: no field `from_cache` on type `IdempotencyRecord`
+   --> src/tool/broker.rs:297:36
+    |
+297 |                         cached_res.from_cache = true;
+    |                                    ^^^^^^^^^^ unknown field
+    |
+    = note: available fields are: `key`, `task_id`, `tool_name`, `tool_version`, `argument_digest` ... and 4 others
+
+error[E0308]: mismatched types
+   --> src/tool/broker.rs:298:32
+    |
+256 |     ) -> ToolExecutionResult {
+    |          ------------------- expected `ToolExecutionResult` because of return type
+...
+298 |                         return cached_res;
+    |                                ^^^^^^^^^^ expected `ToolExecutionResult`, found `IdempotencyRecord`
+
+error[E0308]: mismatched types
+    --> src/tool/broker.rs:595:39
+     |
+ 595 |             cache.insert(key.clone(), result.clone());
+     |                   ------              ^^^^^^^^^^^^^^ expected `IdempotencyRecord`, found `ToolExecutionResult`
+     |                   |
+     |                   arguments to this method are incorrect
+     |
+help: the return type of this call is `ToolExecutionResult` due to the type of the argument passed
+    --> src/tool/broker.rs:595:13
+     |
+ 595 |             cache.insert(key.clone(), result.clone());
+     |             ^^^^^^^^^^^^^^^^^^^^^^^^^^--------------^
+     |                                       |
+     |                                       this argument influences the return type of `insert`
+note: method defined here
+    --> /home/pedro/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/collections/hash/map.rs:1295:12
+     |
+1295 |     pub fn insert(&mut self, k: K, v: V) -> Option<V> {
+     |            ^^^^^^
+
+Some errors have detailed explanations: E0308, E0609.
+For more information about an error, try `rustc --explain E0308`.
+error: could not compile `sail` (lib) due to 5 previous errors

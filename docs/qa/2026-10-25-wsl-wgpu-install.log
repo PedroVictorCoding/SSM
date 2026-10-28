@@ -1,0 +1,26 @@
+Ubuntu/WSL WGPU installation verification
+Date: 2026-10-25
+
+Install:
+./scripts/install.sh wgpu
+
+Result: exit 0
+Installed executable: /home/pedro/.cargo/bin/sail
+Executable format: ELF 64-bit LSB PIE, x86-64, GNU/Linux
+Version: sail 0.1.0
+
+PATH verification from /tmp:
+command -v sail -> /home/pedro/.cargo/bin/sail
+
+Backend smoke:
+sail bench --seq-lens none --decode-lens none
+exit 0
+Backend: wgpu
+Adapter: llvmpipe (LLVM 20.1.2, 256 bits) | Cpu | Vulkan |
+         Mesa 25.2.8-0ubuntu0.24.04.4
+
+Conclusion: the WSL command is installed and reusable from arbitrary directories,
+but this Ubuntu environment currently exposes only Mesa llvmpipe software Vulkan to
+WGPU. It does not expose the AMD Radeon RX 7800 XT. Use the separately installed
+Windows-native sail.exe for actual RX 7800 XT acceleration unless WSL GPU/Vulkan
+passthrough is independently configured and reverified. No driver changes were made.

@@ -1,0 +1,61 @@
+    Blocking waiting for file lock on artifact directory
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.91s
+     Running tests/test_alignment_boundaries.rs (target/debug/deps/test_alignment_boundaries-ae37744b95de1fd1)
+
+running 7 tests
+test test_alignment_document_preserved_verbatim ... ok
+test test_model_cannot_register_new_tools ... ok
+test test_prompt_injection_fixtures_cannot_escalate_privileges ... ok
+test test_protected_paths_immutable_to_writes ... ok
+test test_model_originated_privileged_actions_are_strictly_blocked ... ok
+test test_tool_dispatch_policy_enforcement ... ok
+test test_runtime_outputs_and_captures_excluded_from_training_queue ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/test_backend_adapters.rs (target/debug/deps/test_backend_adapters-75a603b07f010936)
+
+running 4 tests
+test test_adapter_cooperative_cancellation ... ok
+test test_format_validation_strictness ... ok
+test test_session_state_isolation_and_reset ... ok
+test test_scripted_task_runs_interchangeably_across_adapters ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 32.14s
+
+     Running tests/test_camera_capture.rs (target/debug/deps/test_camera_capture-baf4d7ac8100cac6)
+
+running 7 tests
+test test_camera_capability_policy_gate ... ok
+test test_camera_pause_resume_stop_and_indicator ... ok
+test test_task_driven_sampling_and_roi_burst ... ok
+test test_camera_loss_recovery_and_stale_flagging ... ok
+test test_temporal_history_and_motion_detection_on_held_out_sequence ... ok
+test test_bounded_history_and_frame_drop_under_overload ... ok
+test test_camera_capture_overhead_benchmark ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/test_host_runtime.rs (target/debug/deps/test_host_runtime-be67d597df5a9cb2)
+
+running 5 tests
+test test_audio_callback_non_blocking_try_push ... ok
+test test_event_ordering_causality_and_gap_detection ... ok
+test test_bounded_queue_overflow_and_drop_counters ... ok
+test test_deterministic_headless_event_replay ... ok
+test test_cancellation_propagation_and_worker_crash_isolation ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running tests/test_tool_execution_broker.rs (target/debug/deps/test_tool_execution_broker-affcca95361dee6b)
+
+running 6 tests
+test test_capability_authorization_and_privileged_action_blocking ... ok
+test test_cancellation_and_bounded_output_truncation ... ok
+test test_idempotency_caching_and_replay_safety ... ok
+test test_destructive_authorization_gate ... ok
+test test_schema_validation_and_extra_fields_rejection ... ok
+test test_timeout_and_non_idempotent_retry_prevention ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,20 +1,335 @@
-//! Streaming Audio Microphone and Speaker Loop with fast local ASR and TTS.
+//! Streaming Audio Microphone and Speaker Loop with Local Prototype ASR and TTS.
 //!
 //! Provides:
 //! - Real-time microphone capture via `cpal` with ring-buffered sample streaming.
 //! - Energy-based Voice Activity Detection (VAD) for automatic conversational turn-taking.
-//! - Local streaming speech recognition (ASR) abstraction.
-//! - Real-time speech synthesis (TTS) feeding audio output directly to speakers or WAV.
+//! - Prototype speech recognition (ASR) abstraction for offline testing.
+//! - Prototype speech synthesis (TTS) generating harmonic acoustic feedback without external TTS models.
 
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::collections::VecDeque;
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use cpal::StreamConfig;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 
+pub mod asr;
+pub mod dsp;
+pub mod tts;
+
+pub use asr::{
+    AcousticFeatureAsr, AsrError, AsrIntentGate, StreamingAsrAdapter, TranscriptSegment,
+    WhisperLocalAdapter, compute_cer, compute_wer,
+};
+pub use dsp::{
+    AcousticEchoCanceller, AudioDspProcessor, AutomaticGainControl, EndpointEvent, MicrophoneMode,
+    NoiseSuppressor, SpeechEndpointConfig, SpeechEndpointDetector,
+};
+pub use tts::{
+    AcousticTokenDecoder, FormantNeuralTtsEngine, GraphemeToPhoneme, PhonemeType,
+    PiperLocalTtsAdapter, PiperTtsError, PlaybackAlignmentStatus, SailNeuralVocoder,
+    StreamingTtsAdapter, SynthesizedAudioChunk, TextPrefixCommitmentGate, TtsBenchmarkReport,
+    TtsCancellationReport, VoiceConfig, WordAlignment, measure_tts_benchmark,
+};
+
 pub const DEFAULT_SAMPLE_RATE: u32 = 16000;
 pub const DEFAULT_CHANNELS: u16 = 1;
+
+/// Audio quality metrics and clipping detection for input and output PCM frames.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct AudioMetrics {
+    pub peak_amplitude: f32,
+    pub rms_db: f32,
+    pub is_clipped: bool,
+}
+
+impl AudioMetrics {
+    pub fn compute(samples: &[f32]) -> Self {
+        if samples.is_empty() {
+            return Self {
+                peak_amplitude: 0.0,
+                rms_db: -100.0,
+                is_clipped: false,
+            };
+        }
+        let mut peak = 0.0f32;
+        let mut sum_sq = 0.0f32;
+        let mut clipped = false;
+
+        for &s in samples {
+            let abs_s = s.abs();
+            if abs_s > peak {
+                peak = abs_s;
+            }
+            if abs_s >= 0.999 {
+                clipped = true;
+            }
+            sum_sq += s * s;
+        }
+
+        let rms = (sum_sq / samples.len() as f32).sqrt();
+        let rms_db = if rms > 1e-5 {
+            20.0 * rms.log10()
+        } else {
+            -100.0
+        };
+
+        Self {
+            peak_amplitude: peak,
+            rms_db,
+            is_clipped: clipped,
+        }
+    }
+}
+
+/// Timestamped audio chunk with sample offset tracking and metrics.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AudioChunk {
+    pub samples: Arc<[f32]>,
+    pub sample_rate: u32,
+    pub channels: u16,
+    pub sample_offset: u64,
+    pub timestamp_ns: u64,
+    pub metrics: AudioMetrics,
+}
+
+impl AudioChunk {
+    pub fn new(
+        samples: Vec<f32>,
+        sample_rate: u32,
+        channels: u16,
+        sample_offset: u64,
+        timestamp_ns: u64,
+    ) -> Self {
+        let metrics = AudioMetrics::compute(&samples);
+        Self {
+            samples: samples.into(),
+            sample_rate,
+            channels,
+            sample_offset,
+            timestamp_ns,
+            metrics,
+        }
+    }
+
+    pub fn duration_ms(&self) -> f64 {
+        if self.sample_rate == 0 || self.channels == 0 {
+            0.0
+        } else {
+            (self.samples.len() as f64 / (self.sample_rate as f64 * self.channels as f64)) * 1000.0
+        }
+    }
+}
+
+/// High-quality linear resampler and multi-channel downmixer.
+pub struct AudioResampler;
+
+impl AudioResampler {
+    /// Downmix multi-channel interleaved audio to mono.
+    pub fn downmix_to_mono(input: &[f32], channels: u16) -> Vec<f32> {
+        if channels <= 1 || input.is_empty() {
+            return input.to_vec();
+        }
+        let ch = channels as usize;
+        let num_frames = input.len() / ch;
+        let mut mono = Vec::with_capacity(num_frames);
+        for frame in input.chunks_exact(ch) {
+            let sum: f32 = frame.iter().sum();
+            mono.push(sum / ch as f32);
+        }
+        mono
+    }
+
+    /// Resample mono PCM audio using band-limited linear interpolation.
+    pub fn resample(input: &[f32], in_rate: u32, out_rate: u32) -> Vec<f32> {
+        if in_rate == out_rate || input.is_empty() {
+            return input.to_vec();
+        }
+        let ratio = out_rate as f64 / in_rate as f64;
+        let out_len = ((input.len() as f64) * ratio).round() as usize;
+        let mut output = Vec::with_capacity(out_len);
+
+        for i in 0..out_len {
+            let src_idx = i as f64 / ratio;
+            let idx0 = src_idx.floor() as usize;
+            let frac = (src_idx - idx0 as f64) as f32;
+            let idx1 = (idx0 + 1).min(input.len().saturating_sub(1));
+
+            let s0 = input.get(idx0).copied().unwrap_or(0.0);
+            let s1 = input.get(idx1).copied().unwrap_or(s0);
+            let sample = s0 + frac * (s1 - s0);
+            output.push(sample);
+        }
+
+        output
+    }
+}
+
+/// Device operational status for hot-plugging, muting, and error recovery.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DeviceState {
+    Ready,
+    Streaming,
+    Muted,
+    DeviceLost,
+    Reconnecting,
+    PanicStopped,
+}
+
+/// Continuous audio playback pipeline with bounded queue, interruption, and AEC reference.
+pub struct PlaybackPipeline {
+    queue: Mutex<VecDeque<AudioChunk>>,
+    capacity: usize,
+    playback_cursor: Arc<AtomicU64>,
+    underrun_count: Arc<AtomicU64>,
+    overrun_count: Arc<AtomicU64>,
+    is_muted: Arc<AtomicBool>,
+    state: Arc<Mutex<DeviceState>>,
+    aec_reference: Arc<Mutex<VecDeque<f32>>>,
+    aec_capacity: usize,
+}
+
+impl PlaybackPipeline {
+    pub fn new(capacity: usize, aec_capacity: usize) -> Self {
+        Self {
+            queue: Mutex::new(VecDeque::with_capacity(capacity)),
+            capacity,
+            playback_cursor: Arc::new(AtomicU64::new(0)),
+            underrun_count: Arc::new(AtomicU64::new(0)),
+            overrun_count: Arc::new(AtomicU64::new(0)),
+            is_muted: Arc::new(AtomicBool::new(false)),
+            state: Arc::new(Mutex::new(DeviceState::Ready)),
+            aec_reference: Arc::new(Mutex::new(VecDeque::with_capacity(aec_capacity))),
+            aec_capacity,
+        }
+    }
+
+    /// Appends an audio chunk for continuous playback.
+    /// If queue is full, increments overrun count and drops chunk (bounded memory).
+    pub fn enqueue_chunk(&self, chunk: AudioChunk) -> Result<(), String> {
+        let mut q = self.queue.lock().map_err(|e| e.to_string())?;
+        if q.len() >= self.capacity {
+            self.overrun_count.fetch_add(1, Ordering::Relaxed);
+            return Err("Playback queue full; chunk dropped (overrun)".into());
+        }
+        q.push_back(chunk);
+        Ok(())
+    }
+
+    /// Real-time non-blocking speaker pull callback.
+    /// Fills the output buffer, advances the playback cursor, and records AEC reference.
+    pub fn pull_samples(&self, out_buffer: &mut [f32]) {
+        if self.is_muted.load(Ordering::Relaxed) {
+            out_buffer.fill(0.0);
+            return;
+        }
+
+        let mut samples_filled = 0;
+        let mut q = match self.queue.try_lock() {
+            Ok(g) => g,
+            Err(_) => {
+                // Mutex contended: fill 0.0 to protect real-time speaker callback
+                self.underrun_count.fetch_add(1, Ordering::Relaxed);
+                out_buffer.fill(0.0);
+                return;
+            }
+        };
+
+        while samples_filled < out_buffer.len() {
+            if let Some(front) = q.front_mut() {
+                let needed = out_buffer.len() - samples_filled;
+                let available = front.samples.len();
+                let take = needed.min(available);
+
+                out_buffer[samples_filled..samples_filled + take]
+                    .copy_from_slice(&front.samples[..take]);
+                samples_filled += take;
+
+                if take == available {
+                    q.pop_front();
+                } else {
+                    let tail = front.samples[take..].to_vec();
+                    front.samples = tail.into();
+                }
+            } else {
+                // Buffer starved! Fill remaining with silence and record underrun
+                out_buffer[samples_filled..].fill(0.0);
+                self.underrun_count.fetch_add(1, Ordering::Relaxed);
+                break;
+            }
+        }
+
+        // Advance cursor by actual samples played
+        self.playback_cursor
+            .fetch_add(samples_filled as u64, Ordering::Relaxed);
+
+        // Record to AEC loopback reference
+        if let Ok(mut aec) = self.aec_reference.try_lock() {
+            for &s in &out_buffer[..samples_filled] {
+                if aec.len() >= self.aec_capacity {
+                    aec.pop_front();
+                }
+                aec.push_back(s);
+            }
+        }
+    }
+
+    /// Interrupts playback immediately (e.g. for user barge-in).
+    /// Flushes all pending audio and returns the exact playback cursor offset.
+    pub fn interrupt(&self) -> u64 {
+        if let Ok(mut q) = self.queue.lock() {
+            q.clear();
+        }
+        self.playback_cursor.load(Ordering::Relaxed)
+    }
+
+    /// Emergency panic stop: halts playback, mutes output, and sets state to PanicStopped.
+    pub fn panic_stop(&self) -> u64 {
+        self.is_muted.store(true, Ordering::SeqCst);
+        let cursor = self.interrupt();
+        if let Ok(mut st) = self.state.lock() {
+            *st = DeviceState::PanicStopped;
+        }
+        cursor
+    }
+
+    pub fn set_state(&self, new_state: DeviceState) {
+        if let Ok(mut st) = self.state.lock() {
+            *st = new_state;
+        }
+    }
+
+    pub fn state(&self) -> DeviceState {
+        self.state
+            .lock()
+            .map(|s| *s)
+            .unwrap_or(DeviceState::DeviceLost)
+    }
+
+    pub fn playback_cursor(&self) -> u64 {
+        self.playback_cursor.load(Ordering::Relaxed)
+    }
+
+    pub fn queued_chunks(&self) -> usize {
+        self.queue.lock().map(|q| q.len()).unwrap_or(0)
+    }
+
+    pub fn underrun_count(&self) -> u64 {
+        self.underrun_count.load(Ordering::Relaxed)
+    }
+
+    pub fn overrun_count(&self) -> u64 {
+        self.overrun_count.load(Ordering::Relaxed)
+    }
+
+    pub fn drain_aec_reference(&self) -> Vec<f32> {
+        self.aec_reference
+            .lock()
+            .map(|mut a| a.drain(..).collect())
+            .unwrap_or_default()
+    }
+}
 
 /// Thread-safe circular audio buffer for incoming microphone PCM samples.
 #[derive(Clone, Default)]
@@ -105,70 +420,75 @@ impl VadDetector {
     }
 }
 
-/// Fast local acoustic/semantic Speech-to-Text (ASR) engine.
+/// Local acoustic/semantic Speech-to-Text (ASR) engine.
 pub struct VoiceAsr {
-    sample_rate: u32,
+    engine: AcousticFeatureAsr,
 }
 
 impl VoiceAsr {
     pub fn new(sample_rate: u32) -> Self {
-        Self { sample_rate }
+        Self {
+            engine: AcousticFeatureAsr::new(sample_rate, "en"),
+        }
     }
 
-    /// Transcribes captured PCM float samples into text.
+    /// Transcribes captured PCM float samples into text using dynamic acoustic feature decoding.
     pub fn transcribe(&self, audio: &[f32]) -> String {
-        if audio.len() < (self.sample_rate as usize / 4) {
-            // Audio shorter than 250ms is ignored as ambient noise
+        if audio.len() < (DEFAULT_SAMPLE_RATE as usize / 10) {
             return String::new();
         }
-
-        // Measure energy and zero crossings to identify conversational questions
-        let rms = (audio.iter().map(|&s| s * s).sum::<f32>() / audio.len() as f32).sqrt();
-        if rms < 0.005 {
-            return String::new();
-        }
-
-        // Fast acoustic feature representation for testing and live loopback
-        "What is the capital of France?".to_string()
+        let chunk = AudioChunk::new(audio.to_vec(), DEFAULT_SAMPLE_RATE, 1, 0, 0);
+        let _ = self.engine.feed_audio("session_default", &chunk);
+        self.engine
+            .finalize_utterance("session_default")
+            .ok()
+            .flatten()
+            .map(|s| s.text)
+            .unwrap_or_default()
     }
 }
 
 /// Streaming Speech Synthesizer (TTS) converting text into audio waveforms.
 pub struct VoiceTts {
     sample_rate: u32,
+    engine: FormantNeuralTtsEngine,
 }
 
 impl VoiceTts {
     pub fn new(sample_rate: u32) -> Self {
-        Self { sample_rate }
+        Self {
+            sample_rate,
+            engine: FormantNeuralTtsEngine::new(sample_rate),
+        }
     }
 
-    /// Synthesizes spoken audio waveform from text using multi-harmonic acoustic modeling.
+    /// Synthesizes spoken audio waveform from text using dynamic phonetic and formant acoustic modeling.
     pub fn synthesize(&self, text: &str) -> Vec<f32> {
-        let duration_secs = (text.len() as f32 * 0.05).clamp(0.5, 10.0);
-        let num_samples = (self.sample_rate as f32 * duration_secs) as usize;
-        let mut audio = Vec::with_capacity(num_samples);
+        self.engine.synthesize_text(text)
+    }
 
-        // Harmonic synthesizer generating natural voiced cadence
-        let base_f0 = 140.0f32; // Pitch fundamental in Hz
-        for i in 0..num_samples {
-            let t = i as f32 / self.sample_rate as f32;
-            let pitch_mod = 1.0 + 0.1 * (2.0 * std::f32::consts::PI * 1.5 * t).sin();
-            let f0 = base_f0 * pitch_mod;
-
-            // Formants: F1 ~ 500Hz, F2 ~ 1500Hz, F3 ~ 2500Hz
-            let s1 = (2.0 * std::f32::consts::PI * f0 * t).sin();
-            let s2 = 0.5 * (2.0 * std::f32::consts::PI * (f0 * 2.0) * t).sin();
-            let s3 = 0.25 * (2.0 * std::f32::consts::PI * (f0 * 3.0) * t).sin();
-
-            // Amplitude envelope
-            let env =
-                (1.0 - (-5.0 * t).exp()) * (1.0 - (-5.0 * (duration_secs - t).max(0.0)).exp());
-            let sample = (s1 + s2 + s3) * 0.3 * env.clamp(0.0, 1.0);
-            audio.push(sample);
+    /// Synthesizes streaming text tokens incrementally into synthesized audio chunks.
+    pub fn synthesize_streaming(
+        &mut self,
+        utterance_id: &str,
+        text_tokens: &[&str],
+    ) -> Result<Vec<SynthesizedAudioChunk>, String> {
+        let config = VoiceConfig {
+            sample_rate: self.sample_rate,
+            ..Default::default()
+        };
+        self.engine.start_utterance(utterance_id, &config)?;
+        let mut chunks = Vec::new();
+        for token in text_tokens {
+            chunks.extend(self.engine.feed_text(utterance_id, token)?);
         }
+        chunks.extend(self.engine.finalize_utterance(utterance_id)?);
+        Ok(chunks)
+    }
 
-        audio
+    /// Access the underlying streaming TTS engine.
+    pub fn engine_mut(&mut self) -> &mut FormantNeuralTtsEngine {
+        &mut self.engine
     }
 
     /// Writes synthesized audio to a standard WAV file using `hound`.

@@ -1,12 +1,34 @@
-//! Tool execution engine and Internet Search confidence grounding.
+//! Local Knowledge Retrieval and Tool Execution Prototype.
 //!
-//! Provides native LLM tool calling via special control tokens:
+//! Demonstrates LLM tool-calling conventions using special control tokens:
 //! `<tool_call>web_search("query")</tool_call>`
-//! which pauses the recurrent SSM state, queries the search tool, and feeds
-//! `<tool_response>[Verified Evidence]</tool_response>` back into the recurrent state.
+//! which pauses autoregressive SSM generation, queries a local verified knowledge base,
+//! and feeds `<tool_response>[Verified Evidence]</tool_response>` back into the recurrent state.
+//! Note: This is an offline local fact-lookup prototype, not a live Internet crawler.
 
 use std::collections::HashMap;
 use std::sync::Arc;
+
+pub mod application;
+pub mod artifact;
+pub mod broker;
+pub mod builtin;
+pub mod schema;
+pub mod workspace;
+
+pub use application::{ApplicationControlTool, BrowserInteractionTool};
+pub use artifact::StructuredToolArtifact;
+pub use broker::{
+    BrokerExecutionStatus, ToolAuditRecord, ToolExecutionBroker, ToolExecutionContext,
+    ToolExecutionOutput, ToolExecutionResult, ToolProposal, TypedTool,
+};
+pub use builtin::{TypedFileDeleteTool, TypedFileReadTool, TypedWebSearchTool};
+pub use schema::{ParameterType, ToolParameter, ToolSafetyLevel, ToolSchema};
+pub use workspace::{
+    WorkspaceFileReadTool, WorkspaceFileSearchTool, WorkspaceFileWriteTool, WorkspaceTestRunnerTool,
+};
+
+use crate::capability::{Capability, CapabilityPolicy, PrivilegedAction, SecurityError};
 
 pub const TOOL_WEB_SEARCH: &str = "web_search";
 
@@ -17,10 +39,10 @@ pub trait Tool: Send + Sync {
     fn execute(&self, input: &str) -> Result<String, String>;
 }
 
-/// Internet Web Search Tool.
+/// Local Knowledge Base Tool simulating web search grounding.
 ///
-/// Grounds factual answers using verified snippets from web searches,
-/// preventing ungrounded hallucinations and confident lies.
+/// Uses verified local snippets to demonstrate anti-hallucination tool calling
+/// without requiring network dependencies.
 #[derive(Clone, Default)]
 pub struct WebSearchTool {
     knowledge_base: HashMap<String, String>,
@@ -109,38 +131,85 @@ impl ToolRegistry {
         self.tools.insert(tool.name().to_string(), tool);
     }
 
-    /// Dispatches a raw tool call string (e.g. `web_search("query")` or `{"tool": "web_search", "query": "..."}`)
-    pub fn dispatch(&self, call_str: &str) -> String {
+    /// Dispatches a raw tool call string checking host capability grants and alignment boundaries.
+    pub fn dispatch_with_policy(
+        &self,
+        call_str: &str,
+        policy: &CapabilityPolicy,
+    ) -> Result<String, SecurityError> {
         let call = call_str.trim();
 
-        // Parse tool name and query
+        // 1. Intercept attempts to invoke forbidden privileged actions via tool calls
+        let lower = call.to_lowercase();
+        if lower.starts_with("register_tool") || lower.contains("register_tool(") {
+            return policy
+                .check_privileged_action(&PrivilegedAction::RegisterNewTool)
+                .map(|_| String::new());
+        }
+        if lower.starts_with("start_training")
+            || lower.starts_with("train_stream")
+            || lower.contains("train_step")
+            || lower.contains("train_stream(")
+        {
+            return policy
+                .check_privileged_action(&PrivilegedAction::StartTraining)
+                .map(|_| String::new());
+        }
+        if lower.starts_with("promote_model") || lower.contains("promote_model(") {
+            return policy
+                .check_privileged_action(&PrivilegedAction::PromoteModel)
+                .map(|_| String::new());
+        }
+        if lower.starts_with("alter_policy") || lower.contains("alter_policy(") {
+            return policy
+                .check_privileged_action(&PrivilegedAction::AlterSecurityPolicy)
+                .map(|_| String::new());
+        }
+        if lower.starts_with("override_alignment") || lower.contains("override_alignment(") {
+            return policy
+                .check_privileged_action(&PrivilegedAction::BypassAlignment)
+                .map(|_| String::new());
+        }
+
+        // 2. Parse tool name and query
         let (tool_name, query) = if let Some(paren_idx) = call.find('(') {
-            let name = &call[..paren_idx].trim();
+            let name = call[..paren_idx].trim();
             let rest = &call[paren_idx + 1..];
             let end_paren = rest.rfind(')').unwrap_or(rest.len());
             let q = &rest[..end_paren];
             (name.to_string(), q.to_string())
         } else if let Some(colon_idx) = call.find(':') {
-            let name = &call[..colon_idx].trim();
-            let q = &call[colon_idx + 1..].trim();
+            let name = call[..colon_idx].trim();
+            let q = call[colon_idx + 1..].trim();
             (name.to_string(), q.to_string())
         } else {
-            // Default to web_search if tool name omitted
             (TOOL_WEB_SEARCH.to_string(), call.to_string())
         };
 
+        // 3. Check host capability permission
+        policy.check_capability(&Capability::ToolExecution(tool_name.clone()))?;
+
+        // 4. Dispatch to registered tool
         if let Some(tool) = self.tools.get(&tool_name) {
             match tool.execute(&query) {
-                Ok(res) => res,
-                Err(e) => format!("[Tool Error in {tool_name}]: {e}"),
+                Ok(res) => Ok(res),
+                Err(e) => Ok(format!("[Tool Error in {tool_name}]: {e}")),
             }
         } else if let Some(search_tool) = self.tools.get(TOOL_WEB_SEARCH) {
             match search_tool.execute(call) {
-                Ok(res) => res,
-                Err(e) => format!("[Tool Error]: {e}"),
+                Ok(res) => Ok(res),
+                Err(e) => Ok(format!("[Tool Error]: {e}")),
             }
         } else {
-            format!("[Unknown Tool: {tool_name}]")
+            Ok(format!("[Unknown Tool: {tool_name}]"))
+        }
+    }
+
+    /// Dispatches a raw tool call string (e.g. `web_search("query")`) with default policy.
+    pub fn dispatch(&self, call_str: &str) -> String {
+        match self.dispatch_with_policy(call_str, &CapabilityPolicy::default()) {
+            Ok(res) => res,
+            Err(e) => format!("[Access Denied]: {e}"),
         }
     }
 }

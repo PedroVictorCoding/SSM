@@ -1,8 +1,13 @@
 //! Tokenization and dataset batching (Character-level and Native BPE subword).
 
 pub mod bpe;
+pub mod multimodal;
 pub mod stream;
 pub use bpe::BpeTokenizer;
+pub use multimodal::{
+    AudioData, IncomingMultimodalWatcher, OmnimodalDataset, OmnimodalRecord, OmnimodalSnapshot,
+    VisionData, extract_mel_spectrogram, load_ppm_image, load_wav_as_mel,
+};
 pub use stream::{IncomingDirectoryWatcher, StreamConfig, StreamDataset};
 
 use std::collections::HashMap;
@@ -39,6 +44,29 @@ impl Tokenizer {
         match self {
             Tokenizer::Char(c) => c.decode(ids),
             Tokenizer::Bpe(b) => b.decode(ids),
+        }
+    }
+
+    /// Returns the raw byte sequence corresponding to a single token ID.
+    pub fn token_bytes(&self, id: u32) -> Vec<u8> {
+        match self {
+            Tokenizer::Char(c) => {
+                if let Some(&ch) = c.chars.get(id as usize) {
+                    let mut buf = [0u8; 4];
+                    ch.encode_utf8(&mut buf).as_bytes().to_vec()
+                } else {
+                    Vec::new()
+                }
+            }
+            Tokenizer::Bpe(b) => b.token_bytes(id),
+        }
+    }
+
+    /// Checks whether a token ID corresponds to EOS.
+    pub fn is_eos(&self, id: u32) -> bool {
+        match self {
+            Tokenizer::Char(_) => false,
+            Tokenizer::Bpe(b) => b.is_eos(id),
         }
     }
 

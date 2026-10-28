@@ -1,0 +1,16 @@
+{
+  "review": "REVIEW-20261025-06",
+  "before": {
+    "src/tool/broker.rs": "ce19e1222bb6751d0e7342c7cd4a6ac8ae4260ff985c784d183e4ee3a5747c71",
+    "tests/test_tool_execution_broker.rs": "6a3d329f1138f323b5594e7a09eaef60e9216b295f27b7a9a87e6f5231ecf2f9",
+    "docs/qa/idempotency_capacity_probe.rs": "c3d94ba9b0cd7f33255c2ddbc4e53daf764deab1e3adb3957db9065add6fa032"
+  },
+  "after": {
+    "src/tool/broker.rs": "ce19e1222bb6751d0e7342c7cd4a6ac8ae4260ff985c784d183e4ee3a5747c71",
+    "tests/test_tool_execution_broker.rs": "6a3d329f1138f323b5594e7a09eaef60e9216b295f27b7a9a87e6f5231ecf2f9",
+    "docs/qa/idempotency_capacity_probe.rs": "c3d94ba9b0cd7f33255c2ddbc4e53daf764deab1e3adb3957db9065add6fa032"
+  },
+  "library": "target/debug/deps/libsail-d0ef99ebc1b15d24.rlib",
+  "library_sha256": "d40a84a6090d194be7a5137b94da382c1f818e8d20ba5622e1a737cafe8174f5",
+  "source_changed_during_probe": []
+}

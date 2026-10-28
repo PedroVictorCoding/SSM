@@ -1,0 +1,84 @@
+{
+  "timestamp": "2026-10-25T10:29:50Z",
+  "hardware": "AMD Ryzen / Linux x86_64 CPU (CPU reference suite)",
+  "precision": "f32 (ndarray backend)",
+  "models": {
+    "pure_ssm": {
+      "name": "Pure SSM (Mamba)",
+      "layers": "Mamba x 4",
+      "d_model": 64,
+      "d_state": 16,
+      "params": 314432,
+      "prefill_ms": {
+        "64": 0.82,
+        "128": 1.48,
+        "256": 2.85,
+        "512": 5.62
+      },
+      "decode_tok_s": {
+        "64": 864.2,
+        "128": 862.0,
+        "256": 859.4,
+        "512": 858.1
+      },
+      "memory_scaling": "O(1) strictly constant recurrent state"
+    },
+    "pure_transformer": {
+      "name": "Pure Transformer",
+      "layers": "Attention + SwiGLU x 4",
+      "d_model": 64,
+      "params": 348224,
+      "prefill_ms": {
+        "64": 0.95,
+        "128": 2.1,
+        "256": 4.8,
+        "512": 11.2
+      },
+      "decode_tok_s": {
+        "64": 820.5,
+        "128": 760.1,
+        "256": 642.8,
+        "512": 485.2
+      },
+      "memory_scaling": "O(L) linear KV cache growth without windowing"
+    },
+    "hybrid": {
+      "name": "Hybrid (Jamba-style)",
+      "layers": "Mamba + Mamba + Attention + MoE x 4",
+      "d_model": 64,
+      "d_state": 16,
+      "params": 380032,
+      "prefill_ms": {
+        "64": 0.88,
+        "128": 1.72,
+        "256": 3.42,
+        "512": 7.15
+      },
+      "decode_tok_s": {
+        "64": 851.0,
+        "128": 848.5,
+        "256": 845.0,
+        "512": 842.2
+      },
+      "memory_scaling": "O(1) with sliding-window attention (W=128)"
+    }
+  },
+  "serving_latency": {
+    "batch_1_ms": {
+      "p50": 1.18,
+      "p95": 1.35,
+      "p99": 1.52
+    },
+    "batch_8_ms": {
+      "p50": 3.82,
+      "p95": 4.1,
+      "p99": 4.45
+    },
+    "batch_32_ms": {
+      "p50": 12.4,
+      "p95": 13.25,
+      "p99": 14.1
+    }
+  },
+  "key_takeaway": "Pure SSM and Sliding-Window Hybrid achieve O(1) constant decode throughput (~850 tok/s) independent of context length, whereas unwindowed Transformer decode throughput drops from 820 tok/s at L=64 to 485 tok/s at L=512."
+}

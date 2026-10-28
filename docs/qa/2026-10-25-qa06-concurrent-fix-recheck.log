@@ -1,0 +1,20 @@
+Current-source recheck after concurrent implementation edits
+
+Targeted command:
+cargo test --offline --test test_alignment_boundaries --test test_tool_execution_broker --test test_workspace_and_app_adapters
+
+Result: exit 0; 21 passed, 0 failed (7 + 9 + 5).
+
+Structured path probe:
+authorized unrelated Rust project source edit: Ok(())
+narrow-constructor symlink search status: Success; outside-root metadata exposed: false
+broader-constructor symlink search status: Success; outside host-root metadata exposed: false
+protected framework root rename check: Err(ProtectedPathViolation("/tmp/sail-path-integration-review-39/protected-framework"))
+protected framework parent deletion policy check (not executed): Err(ProtectedPathViolation("/tmp/sail-path-integration-review-39"))
+explicit protected framework reclassified as user project: Err(ProtectedPathViolation("/tmp/sail-path-integration-review-39/protected-framework/src/fixture.rs"))
+protected source after fixture ancestor move: Ok(())
+
+The last observation simulates an external rename of an ancestor and does not claim
+that a SAIL tool performed that rename. It keeps the path-identity/TOCTOU question
+open; the other four previously demonstrated Linux fixture failures are repaired in
+this source snapshot.

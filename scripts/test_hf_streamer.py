@@ -264,6 +264,96 @@ class FeederTests(unittest.TestCase):
         replay = json.loads((run/checkpoint["stream_file"]).read_text())
         self.assertGreater(len(replay["tokens"]),16)
 
+    @unittest.skipUnless(os.environ.get("SAIL_TEST_BINARY"), "set SAIL_TEST_BINARY for Rust trainer roundtrip")
+    def test_multimodal_trainer_roundtrip_with_compiled_binary(self):
+        omni_incoming = self.root / "omni_incoming"
+        audio_source = hf.normalize_source({"dataset": "test/audio", "field": "audio", "target_field": "label"})
+        audio_rows = [
+            {"audio": [0.05 * (j % 10) for j in range(800)], "label": f"audio-command-{i}"}
+            for i in range(10)
+        ]
+        audio_args = hf.parse_args([
+            "--incoming", str(omni_incoming), "--dataset", "test/audio",
+            "--field", "audio", "--target-field", "label",
+            "--modality", "audio", "--min-chars", "1",
+            "--chunk-mib", "0.02", "--max-record-mib", "0.05", "--prefetch-mib", "1.0", "--once"
+        ])[0]
+        hf.run(audio_args, [audio_source], "test-version", lambda s, saved, c: FakeReader(audio_rows, saved))
+
+        omni_run = self.root / "omni_run"
+        command = [
+            os.environ["SAIL_TEST_BINARY"], "stream-train", "--multimodal",
+            "--incoming", str(omni_incoming), "--out", str(omni_run),
+            "--steps", "2", "--batch-size", "2", "--seq-len", "8",
+            "--d-model", "16", "--n-layers", "2", "--d-state", "4",
+            "--audio-channels", "80", "--patch-size", "16",
+            "--save-every", "1", "--log-every", "1", "--viz-every", "0",
+        ]
+        result = subprocess.run(command, capture_output=True, text=True, timeout=30)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertTrue((omni_run / "model.sea").exists())
+        self.assertTrue((omni_run / "checkpoint.json").exists())
+
+        # Verify that multimodal checkpoint receipts enable durable cleanup of committed chunks
+        spool = hf.Spool(omni_incoming, [audio_source], "test-version", 1, int(0.05 * hf.MIB))
+        reclaimed_bytes = spool.reclaim(omni_run)
+        self.assertGreater(reclaimed_bytes, 0)
+        remaining_chunks = list(omni_incoming.glob("hf_*.omni.jsonl"))
+        self.assertEqual(len(remaining_chunks), 0)
+
+    def test_multimodal_audio_and_vision_streaming(self):
+        # 1. Test Audio Modality streaming
+        audio_source = hf.normalize_source({"dataset": "test/audio", "field": "audio", "target_field": "label"})
+        audio_rows = [
+            {"audio": [0.1 * ((i + j) % 10) for j in range(800)], "label": f"label-{i}"}
+            for i in range(5)
+        ]
+        audio_args = hf.parse_args([
+            "--incoming", str(self.incoming), "--dataset", "test/audio",
+            "--field", "audio", "--target-field", "label",
+            "--modality", "audio", "--min-chars", "1",
+            "--chunk-mib", "0.01", "--max-record-mib", "0.05", "--prefetch-mib", "1.0", "--once"
+        ])[0]
+
+        hf.run(audio_args, [audio_source], "test-version", lambda s, saved, c: FakeReader(audio_rows, saved))
+        audio_chunks = list(self.incoming.glob("hf_*_*.omni.jsonl"))
+        self.assertGreater(len(audio_chunks), 0)
+
+        # Inspect generated record
+        first_line = audio_chunks[0].read_text().splitlines()[0]
+        record = json.loads(first_line)
+        self.assertIn("audio", record)
+        self.assertIsNotNone(record["audio"])
+        self.assertEqual(record["audio"]["channels"], 80)
+        self.assertIn("target", record)
+        self.assertTrue(record["target"].startswith("label-"))
+
+        # 2. Test Vision Modality streaming
+        incoming_vision = self.root / "incoming_vision"
+        vision_source = hf.normalize_source({"dataset": "test/vision", "field": "img", "target_field": "class"})
+        vision_rows = [
+            {"img": [128 for _ in range(3 * 32 * 32)], "class": f"cat-{i}"}
+            for i in range(5)
+        ]
+        vision_args = hf.parse_args([
+            "--incoming", str(incoming_vision), "--dataset", "test/vision",
+            "--field", "img", "--target-field", "class",
+            "--modality", "vision", "--min-chars", "1",
+            "--chunk-mib", "0.2", "--max-record-mib", "0.2", "--prefetch-mib", "2.0", "--once"
+        ])[0]
+
+        hf.run(vision_args, [vision_source], "test-version", lambda s, saved, c: FakeReader(vision_rows, saved))
+        vision_chunks = list(incoming_vision.glob("hf_*_*.omni.jsonl"))
+        self.assertGreater(len(vision_chunks), 0)
+        v_line = vision_chunks[0].read_text().splitlines()[0]
+        v_record = json.loads(v_line)
+        self.assertIn("vision", v_record)
+        self.assertIsNotNone(v_record["vision"])
+        self.assertEqual(v_record["vision"]["channels"], 3)
+        self.assertEqual(v_record["vision"]["height"], 32)
+        self.assertEqual(v_record["vision"]["width"], 32)
+        self.assertTrue(v_record["target"].startswith("cat-"))
+
     def test_single_producer_lock_and_resume_version_guard(self):
         self.incoming.mkdir()
         with hf.DirectoryLock(self.incoming/"lock"):
@@ -273,6 +363,89 @@ class FeederTests(unittest.TestCase):
         self.spool()
         with self.assertRaisesRegex(ValueError,"version differs"):
             hf.Spool(self.incoming,[self.source],"new-version",1,int(.0001*hf.MIB))
+
+    def test_sqlite_deduplication_persists_across_restarts(self):
+        identical_rows = [
+            {"text": "identical record for testing restart deduplication" * 2},
+            {"text": "identical record for testing restart deduplication" * 2},
+        ]
+        args1 = self.args("--max-chunks", "1", "--batch-rows", "1")
+        hf.run(args1, [self.source], "test-version", lambda s, saved, c: FakeReader(identical_rows, saved))
+        chunks_after_first = list(self.incoming.glob("hf_*.txt"))
+        self.assertEqual(len(chunks_after_first), 1)
+
+        # Second run with identical data against the same spool: should detect duplicate via SQLite and publish 0 new chunks
+        args2 = self.args("--max-chunks", "1", "--batch-rows", "1")
+        hf.run(args2, [self.source], "test-version", lambda s, saved, c: FakeReader(identical_rows, saved))
+        chunks_after_second = list(self.incoming.glob("hf_*.txt"))
+        self.assertEqual(len(chunks_after_second), 1)
+
+    def test_multimodal_different_images_same_label_both_survive(self):
+        vision_source = hf.normalize_source({"dataset": "test/vision", "field": "img", "target_field": "label"})
+        vision_rows = [
+            {"img": [0.2] * 3072, "label": "1"},
+            {"img": [0.8] * 3072, "label": "1"},
+        ]
+        saved = {"cursor": None, "rows": 0, "accepted": 0, "sequence": 0, "exhausted": False}
+        reader = FakeReader(vision_rows, saved)
+        dedup_store = hf.DedupStore(self.incoming / ".hf_streamer" / "dedup.db")
+        updated, text, is_omni, batch_hashes = hf.collect(
+            reader, saved, vision_source,
+            chunk_bytes=100000, batch_rows=2, min_chars=1, max_record_bytes=100000,
+            modality="vision", dedup_store=dedup_store
+        )
+        self.assertEqual(updated["accepted"], 2)
+        self.assertEqual(len(batch_hashes), 2)
+        lines = [line for line in text.strip().split("\n") if line]
+        self.assertEqual(len(lines), 2)
+
+    def test_split_contamination_guard(self):
+        val_source = hf.normalize_source({"dataset": "test/source", "split": "validation"})
+        train_source = hf.normalize_source({"dataset": "test/source", "split": "train"})
+        shared_text = "held out text"
+        val_rows = [{"text": shared_text}]
+        train_rows = [{"text": shared_text}, {"text": "clean training"}]
+
+        val_args = self.args("--max-chunks", "1")
+        hf.run(val_args, [val_source], "test-version", lambda s, saved, c: FakeReader(val_rows, saved))
+
+        db = hf.DedupStore(self.incoming / ".hf_streamer" / "dedup.db")
+        doc_hash = __import__("hashlib").sha256(shared_text.encode("utf-8")).hexdigest()[:32]
+        self.assertEqual(db.get_split(doc_hash), "validation")
+
+        train_args = self.args("--max-chunks", "1")
+        hf.run(train_args, [train_source], "test-version", lambda s, saved, c: FakeReader(train_rows, saved))
+
+        all_text = "".join(p.read_text(encoding="utf-8") for p in self.incoming.glob("hf_*.txt"))
+        self.assertIn("clean training", all_text)
+
+    def test_ttsa_cooldown_boundary_and_exposure_backoff(self):
+        db = hf.DedupStore(self.incoming / ".hf_streamer" / "dedup.db")
+        doc_hash = "abc00011122233344455566677788899"
+        cooldown = 1000  # 1000 seconds
+
+        # 1. First stage at t = 1000: novel document is permitted
+        self.assertTrue(db.check_and_stage(doc_hash, "train", now=1000, cooldown_secs=cooldown))
+        db.commit_records([(doc_hash, "test/src", "train", "chunk1.txt")], now=1000, cooldown_secs=cooldown)
+
+        # 2. Re-check at t = 1500 (before eligible_after = 2000): must be rejected (cooldown active)
+        self.assertFalse(db.check_and_stage(doc_hash, "train", now=1500, cooldown_secs=cooldown))
+
+        # 3. Check across split at any time: must be rejected (contamination guard never expires)
+        self.assertFalse(db.check_and_stage(doc_hash, "validation", now=5000, cooldown_secs=cooldown))
+
+        # 4. Re-check at t = 2000 (cooldown boundary reached): must be permitted
+        self.assertTrue(db.check_and_stage(doc_hash, "train", now=2000, cooldown_secs=cooldown))
+
+        # 5. Commit second exposure at t = 2000: backoff increases eligible_after
+        db.commit_records([(doc_hash, "test/src", "train", "chunk2.txt")], now=2000, cooldown_secs=cooldown)
+        cursor = db.conn.execute("SELECT exposure_count, eligible_after FROM documents WHERE doc_hash = ?", (doc_hash,))
+        exp, eligible_after = cursor.fetchone()
+        self.assertEqual(exp, 2)
+        # For exp=2, backoff = 1000 * (1.5**2) = 2250 -> eligible_after = 2000 + 2250 = 4250
+        self.assertEqual(eligible_after, 4250)
+        self.assertFalse(db.check_and_stage(doc_hash, "train", now=4000, cooldown_secs=cooldown))
+        self.assertTrue(db.check_and_stage(doc_hash, "train", now=4300, cooldown_secs=cooldown))
 
     @unittest.skipUnless(importlib.util.find_spec("datasets"), "install scripts/requirements-hf.txt for real Parquet test")
     def test_real_parquet_shard_iterator_resume(self):

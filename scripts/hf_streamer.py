@@ -31,6 +31,15 @@ PRESETS = {
         {"dataset": "HuggingFaceH4/ultrachat_200k", "split": "train_sft", "field": "messages"},
         {"dataset": "Open-Orca/OpenOrca", "field": "response"},
     ],
+    "audio": [
+        {"dataset": "speech_commands", "config": "v0.02", "split": "train", "field": "audio", "target_field": "label"},
+    ],
+    "vision": [
+        {"dataset": "cifar10", "split": "train", "field": "img", "target_field": "label"},
+    ],
+    "multimodal": [
+        {"dataset": "HuggingFaceM4/DocVQA", "split": "train", "field": "image", "prompt_field": "question", "target_field": "answers"},
+    ],
 }
 PRESETS["general"] = [PRESETS["code"][0], PRESETS["science"][1], PRESETS["conversational"][0]]
 
@@ -76,7 +85,7 @@ class DirectoryLock:
 
 
 def normalize_source(source):
-    allowed = {"dataset", "config", "split", "field", "revision", "data_files"}
+    allowed = {"dataset", "config", "split", "field", "revision", "data_files", "target_field", "prompt_field", "modality"}
     if not isinstance(source, dict) or set(source) - allowed:
         raise ValueError(f"source must contain only {sorted(allowed)}")
     result = {"split": "train", "field": "text", **source}
@@ -93,13 +102,207 @@ def source_key(source):
 
 
 def extract_text(row, field):
+    if not field or field not in row:
+        return ""
     content = row.get(field)
     if isinstance(content, str):
         return content.strip()
+    if isinstance(content, (int, float)):
+        return str(content)
     if field == "messages" and isinstance(content, list):
         return "\n".join(f"{msg.get('role', 'user')}: {msg['content']}" for msg in content
                          if isinstance(msg, dict) and isinstance(msg.get("content"), str)).strip()
+    if isinstance(content, list) and content and isinstance(content[0], str):
+        return content[0].strip()
     return ""
+
+
+def extract_audio(row, field, n_mels=80):
+    val = row.get(field)
+    if val is None:
+        return None
+    if isinstance(val, dict) and "array" in val:
+        arr = val["array"]
+    elif isinstance(val, (list, tuple)):
+        arr = val
+    else:
+        return None
+
+    try:
+        import numpy as np
+        samples = np.asarray(arr, dtype=np.float32)
+        if samples.ndim > 1:
+            samples = samples.mean(axis=-1)
+        max_abs = np.abs(samples).max()
+        if max_abs > 0:
+            samples = samples / max_abs
+
+        n_fft = 400
+        hop = 160
+        if len(samples) < n_fft:
+            samples = np.pad(samples, (0, n_fft - len(samples)))
+        n_frames = max(1, (len(samples) - n_fft) // hop + 1)
+        target_len = (n_frames - 1) * hop + n_fft
+        if len(samples) < target_len:
+            samples = np.pad(samples, (0, target_len - len(samples)))
+
+        frames = np.lib.stride_tricks.sliding_window_view(samples[:target_len], n_fft)[::hop]
+        window = 0.5 * (1.0 - np.cos(2.0 * np.pi * np.arange(n_fft) / (n_fft - 1)))
+        windowed = frames * window
+        spec = np.abs(np.fft.rfft(windowed, axis=1)) ** 2
+        n_bins = spec.shape[1]
+        bin_edges = np.linspace(0, n_bins, n_mels + 1, dtype=int)
+        mel_data = np.zeros((n_mels, n_frames), dtype=np.float32)
+        for m in range(n_mels):
+            b_start, b_end = bin_edges[m], max(bin_edges[m] + 1, bin_edges[m + 1])
+            mel_data[m] = np.log(np.maximum(spec[:, b_start:b_end].mean(axis=1), 1e-5))
+
+        return {
+            "channels": n_mels,
+            "frames": int(n_frames),
+            "data": mel_data.flatten().tolist()
+        }
+    except Exception:
+        flat = [float(x) for x in arr[:n_mels * 16]]
+        frames = max(1, len(flat) // n_mels)
+        flat = (flat + [0.0] * (n_mels * frames))[:n_mels * frames]
+        return {"channels": n_mels, "frames": frames, "data": flat}
+
+
+def extract_vision(row, field, target_size=(32, 32)):
+    val = row.get(field)
+    if val is None:
+        return None
+    try:
+        from PIL import Image
+        if isinstance(val, Image.Image):
+            img = val.convert("RGB").resize(target_size)
+            import numpy as np
+            arr = (np.asarray(img, dtype=np.float32) / 127.5) - 1.0
+            arr = np.transpose(arr, (2, 0, 1))
+            return {
+                "channels": 3,
+                "height": target_size[0],
+                "width": target_size[1],
+                "data": arr.flatten().tolist()
+            }
+    except Exception:
+        pass
+
+    if isinstance(val, (list, tuple)):
+        size = 3 * target_size[0] * target_size[1]
+        flat = [(float(x) / 127.5 - 1.0) if float(x) > 1.0 else float(x) for x in val[:size]]
+        flat = (flat + [0.0] * size)[:size]
+        return {
+            "channels": 3,
+            "height": target_size[0],
+            "width": target_size[1],
+            "data": flat
+        }
+    return None
+
+
+class DedupStore:
+    """Transactional SQLite deduplication and split-membership store."""
+    def __init__(self, db_path):
+        import sqlite3
+        self.db_path = Path(db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self.conn = sqlite3.connect(str(self.db_path), timeout=30.0)
+        self.conn.execute("PRAGMA journal_mode=WAL")
+        self.conn.execute("PRAGMA synchronous=NORMAL")
+        self._init_tables()
+
+    def _init_tables(self):
+        with self.conn:
+            self.conn.execute("""
+                CREATE TABLE IF NOT EXISTS documents (
+                    doc_hash TEXT PRIMARY KEY,
+                    source TEXT NOT NULL,
+                    split TEXT NOT NULL,
+                    chunk_name TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    exposure_count INTEGER NOT NULL DEFAULT 1,
+                    last_trained_at INTEGER DEFAULT 0,
+                    eligible_after INTEGER DEFAULT 0
+                )
+            """)
+            self.conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_documents_split ON documents(split)
+            """)
+            for col, col_type in [
+                ("exposure_count", "INTEGER NOT NULL DEFAULT 1"),
+                ("last_trained_at", "INTEGER DEFAULT 0"),
+                ("eligible_after", "INTEGER DEFAULT 0"),
+            ]:
+                try:
+                    self.conn.execute(f"ALTER TABLE documents ADD COLUMN {col} {col_type}")
+                except Exception:
+                    pass
+
+    def is_seen(self, doc_hash_hex):
+        cursor = self.conn.execute(
+            "SELECT 1 FROM documents WHERE doc_hash = ?", (doc_hash_hex,)
+        )
+        return cursor.fetchone() is not None
+
+    def get_split(self, doc_hash_hex):
+        cursor = self.conn.execute(
+            "SELECT split FROM documents WHERE doc_hash = ?", (doc_hash_hex,)
+        )
+        row = cursor.fetchone()
+        return row[0] if row else None
+
+    def check_and_stage(self, doc_hash_hex, target_split, now=None, cooldown_secs=86400):
+        """Returns True if document is novel and permitted in target_split.
+        Returns False if duplicate or if it belongs to another split (contamination guard).
+        If already in same split, checks TTSA cooldown."""
+        now_ts = int(time.time() if now is None else now)
+        cursor = self.conn.execute(
+            "SELECT split, exposure_count, eligible_after FROM documents WHERE doc_hash = ?", (doc_hash_hex,)
+        )
+        row = cursor.fetchone()
+        if row is not None:
+            existing_split, exposure_count, eligible_after = row
+            if existing_split != target_split:
+                LOG.warning("Rejecting document %s from split %r: already in split %r (contamination guard)",
+                            doc_hash_hex[:12], target_split, existing_split)
+                return False
+            eligible_after = eligible_after or 0
+            if now_ts < eligible_after:
+                LOG.debug("Document %s on TTSA cooldown until %d (now=%d)", doc_hash_hex[:12], eligible_after, now_ts)
+                return False
+            return True
+        return True
+
+    def commit_records(self, records, now=None, cooldown_secs=86400):
+        if not records:
+            return
+        now_ts = int(time.time() if now is None else now)
+        with self.conn:
+            for item in records:
+                h, s, sp, c = item[0], item[1], item[2], item[3]
+                cursor = self.conn.execute("SELECT exposure_count FROM documents WHERE doc_hash = ?", (h,))
+                row = cursor.fetchone()
+                if row is None:
+                    eligible_after = now_ts + cooldown_secs
+                    self.conn.execute(
+                        "INSERT INTO documents (doc_hash, source, split, chunk_name, exposure_count, last_trained_at, eligible_after) VALUES (?, ?, ?, ?, 1, ?, ?)",
+                        (h, s, sp, c, now_ts, eligible_after)
+                    )
+                else:
+                    exp = row[0] + 1
+                    eligible_after = now_ts + int(cooldown_secs * (1.5 ** min(exp, 10)))
+                    self.conn.execute(
+                        "UPDATE documents SET exposure_count = ?, last_trained_at = ?, eligible_after = ?, chunk_name = ? WHERE doc_hash = ?",
+                        (exp, now_ts, eligible_after, c, h)
+                    )
+
+    def close(self):
+        try:
+            self.conn.close()
+        except Exception:
+            pass
 
 
 def error_status(error):
@@ -192,6 +395,7 @@ class Spool:
             key = source_key(source)
             self.state["sources"].setdefault(key, {"source": source, "cursor": None, "rows": 0,
                                                    "accepted": 0, "sequence": 0, "exhausted": False})
+        self.dedup_store = DedupStore(self.control / "dedup.db")
         self.save()
         self.recover()
         (self.control / "chunk.tmp").unlink(missing_ok=True)
@@ -218,19 +422,25 @@ class Spool:
         self.state["pending"] = None
         self.save()
 
-    def commit(self, key, saved, text):
+    def commit(self, key, saved, text, is_omni=False, batch_hashes=None, split="train"):
         self.state["sources"][key] = saved
+        chunk_name = None
         if text:
-            name = f"hf_{self.state['id']}_{key}_{saved['sequence']:010d}.txt"
+            ext = ".omni.jsonl" if is_omni else ".txt"
+            name = f"hf_{self.state['id']}_{key}_{saved['sequence']:010d}{ext}"
             self.state["pending"] = {"name": name, "text": text}
+            chunk_name = name
         # Cursor and pending bytes are committed together before publication.
         self.save()
+        if batch_hashes and chunk_name:
+            records = [(h, key, split, chunk_name) for h in batch_hashes]
+            self.dedup_store.commit_records(records)
         self.recover()
 
     def payload_bytes(self):
         # Count all local input files, including other feeders; never delete those.
         return sum(p.stat().st_size for p in self.incoming.iterdir()
-                   if p.is_file() and p.suffix in (".txt", ".jsonl", ".md"))
+                   if p.is_file() and (p.suffix in (".txt", ".jsonl", ".md") or p.name.endswith(".omni.jsonl")))
 
     def reclaim(self, consumer_run):
         if not consumer_run:
@@ -257,7 +467,7 @@ class Spool:
         removed = 0
         prefix = f"hf_{self.state['id']}_"
         for name in ack["processed_files"]:
-            if Path(name).name != name or not name.startswith(prefix) or not name.endswith(".txt"):
+            if Path(name).name != name or not name.startswith(prefix) or not (name.endswith(".txt") or name.endswith(".omni.jsonl")):
                 continue
             path = self.incoming / name
             if path.is_file():
@@ -266,9 +476,12 @@ class Spool:
         return removed
 
 
-def collect(reader, saved, source, chunk_bytes, batch_rows, min_chars, max_record_bytes):
+def collect(reader, saved, source, chunk_bytes, batch_rows, min_chars, max_record_bytes, modality="text", dedup_store=None, seen_hashes=None):
     saved = copy.deepcopy(saved)
     parts, size = [], 0
+    batch_hashes = set()
+    is_omni = modality in ("audio", "vision", "multimodal")
+    split = source.get("split", "train")
     for _ in range(batch_rows):
         try:
             row = reader.next()
@@ -278,22 +491,94 @@ def collect(reader, saved, source, chunk_bytes, batch_rows, min_chars, max_recor
         saved["rows"] += 1
         if source["field"] not in row:
             raise ValueError(f"configured field {source['field']!r} is missing from dataset {source['dataset']}")
-        text = extract_text(row, source["field"])
-        if len(text) >= min_chars:
-            byte_count = len(text.encode("utf-8")) + 2
+
+        if not is_omni:
+            prompt = extract_text(row, source.get("prompt_field", "instruction")) if ("prompt_field" in source or "instruction" in row or "question" in row) else ""
+            if not prompt and "question" in row:
+                prompt = extract_text(row, "question")
+            target = extract_text(row, source.get("target_field", "response")) if ("target_field" in source or "response" in row or "output" in row or "answer" in row) else ""
+            if not target and "output" in row:
+                target = extract_text(row, "output")
+            elif not target and "answer" in row:
+                target = extract_text(row, "answer")
+
+            if prompt and target:
+                text = f"Instruction: {prompt}\nResponse: {target}"
+            else:
+                text = extract_text(row, source["field"])
+
+            if len(text) >= min_chars:
+                doc_hash = hashlib.sha256(text.encode("utf-8")).digest()[:16]
+                doc_hash_hex = doc_hash.hex()
+                if doc_hash_hex in batch_hashes:
+                    continue
+                if seen_hashes is not None and (doc_hash in seen_hashes or doc_hash_hex in seen_hashes):
+                    continue
+                if dedup_store is not None and not dedup_store.check_and_stage(doc_hash_hex, split):
+                    continue
+                batch_hashes.add(doc_hash_hex)
+                byte_count = len(text.encode("utf-8")) + 2
+                if byte_count <= max_record_bytes:
+                    parts.append(text + "\n\n")
+                    size += byte_count
+                    saved["accepted"] += 1
+                else:
+                    LOG.warning("dataset=%s skipped oversized record row=%d bytes=%d", source["dataset"], saved["rows"], byte_count)
+        else:
+            audio_data = extract_audio(row, source["field"]) if modality in ("audio", "multimodal") else None
+            vision_data = extract_vision(row, source["field"]) if modality in ("vision", "multimodal") else None
+
+            prompt = extract_text(row, source.get("prompt_field", "prompt")) or None
+            target = extract_text(row, source.get("target_field", "")) or str(row.get(source.get("target_field", "label"), ""))
+            if not target:
+                target = extract_text(row, source["field"]) or "target"
+
+            hasher = hashlib.sha256()
+            hasher.update((prompt or "").encode("utf-8"))
+            hasher.update(b"\x00")
+            hasher.update(str(target).encode("utf-8"))
+            hasher.update(b"\x00")
+            if vision_data is not None:
+                hasher.update(b"vis:")
+                vis_payload = json.dumps(vision_data.get("data", [])).encode("utf-8")
+                hasher.update(hashlib.sha256(vis_payload).digest())
+            if audio_data is not None:
+                hasher.update(b"aud:")
+                aud_payload = json.dumps(audio_data.get("data", [])).encode("utf-8")
+                hasher.update(hashlib.sha256(aud_payload).digest())
+
+            doc_hash = hasher.digest()[:16]
+            doc_hash_hex = doc_hash.hex()
+            if doc_hash_hex in batch_hashes:
+                continue
+            if seen_hashes is not None and (doc_hash in seen_hashes or doc_hash_hex in seen_hashes):
+                continue
+            if dedup_store is not None and not dedup_store.check_and_stage(doc_hash_hex, split):
+                continue
+            batch_hashes.add(doc_hash_hex)
+
+            rec = {
+                "text": prompt,
+                "target": target,
+                "audio": audio_data,
+                "vision": vision_data,
+            }
+            line = json.dumps(rec, ensure_ascii=False) + "\n"
+            byte_count = len(line.encode("utf-8"))
             if byte_count <= max_record_bytes:
-                parts.append(text + "\n\n")
+                parts.append(line)
                 size += byte_count
                 saved["accepted"] += 1
             else:
                 LOG.warning("dataset=%s skipped oversized record row=%d bytes=%d", source["dataset"], saved["rows"], byte_count)
+
         if size >= chunk_bytes:
             break
     saved["cursor"] = reader.cursor()
     saved["revision"] = reader.revision
     if parts:
         saved["sequence"] += 1
-    return saved, "".join(parts)
+    return saved, "".join(parts), is_omni, batch_hashes
 
 
 def run(args, sources, version, reader_factory=HFReader):
@@ -305,6 +590,7 @@ def run(args, sources, version, reader_factory=HFReader):
         spool = Spool(incoming, sources, version, args.min_chars, args.max_record_bytes)
         readers, errors, retry_at = {}, {}, {}
         emitted, last_source = 0, -1
+        seen_hashes = set()
         while True:
             reclaimed = spool.reclaim(args.consumer_run)
             if reclaimed:
@@ -332,8 +618,9 @@ def run(args, sources, version, reader_factory=HFReader):
             try:
                 if key not in readers:
                     readers[key] = reader_factory(source, saved, control / "cache")
-                updated, text = collect(readers[key], saved, source, args.chunk_bytes, args.batch_rows,
-                                        args.min_chars, args.max_record_bytes)
+                updated, text, is_omni, batch_hashes = collect(readers[key], saved, source, args.chunk_bytes, args.batch_rows,
+                                                               args.min_chars, args.max_record_bytes, args.modality,
+                                                               dedup_store=spool.dedup_store)
             except Exception as error:
                 readers.pop(key, None)  # Reopen from the last durable cursor, including lost partial batches.
                 if not retryable(error):
@@ -347,7 +634,7 @@ def run(args, sources, version, reader_factory=HFReader):
                 retry_at[key] = time.monotonic() + delay
                 LOG.warning("dataset=%s network failure %s HTTP=%s; retry %d/%d in %.1fs", source["dataset"], type(error).__name__, error_status(error)[0], attempt+1, args.max_retries, delay)
                 continue
-            spool.commit(key, updated, text)
+            spool.commit(key, updated, text, is_omni=is_omni, batch_hashes=batch_hashes, split=source.get("split", "train"))
             errors[key] = 0
             retry_at.pop(key, None)
             if updated["exhausted"]:
@@ -367,6 +654,9 @@ def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--incoming", default="data/incoming")
     parser.add_argument("--topic", choices=tuple(PRESETS), default="code")
+    parser.add_argument("--modality", choices=("text", "audio", "vision", "multimodal"), default="text")
+    parser.add_argument("--target-field", help="Field containing target label/transcription/caption")
+    parser.add_argument("--prompt-field", help="Field containing optional prompt question/instruction")
     parser.add_argument("--dataset", help="Explicit Hub dataset, or parquet/json/text/csv with --data-files")
     parser.add_argument("--config")
     parser.add_argument("--split", default="train")
@@ -405,10 +695,17 @@ def parse_args(argv=None):
         sources = json.loads(args.sources.read_text(encoding="utf-8"))
     elif args.dataset:
         source = {"dataset": args.dataset, "split": args.split, "field": args.field}
+        if args.target_field:
+            source["target_field"] = args.target_field
+        if args.prompt_field:
+            source["prompt_field"] = args.prompt_field
         source.update({key: value for key, value in {"config": args.config, "revision": args.revision, "data_files": args.data_files}.items() if value is not None})
         sources = [source]
     else:
-        sources = PRESETS[args.topic]
+        if args.modality in PRESETS and args.topic == "code":
+            sources = PRESETS[args.modality]
+        else:
+            sources = PRESETS[args.topic]
     if not isinstance(sources, list) or not sources:
         parser.error("sources must be a nonempty JSON array")
     sources = [normalize_source(source) for source in sources]

@@ -1,0 +1,15 @@
+{
+  "review": "REVIEW-20261025-01",
+  "worktree_files_sha256": {
+    "AGENTS.md": "ba35936550272e93bfbee0f2e0554270feaea330ea12308b831a63cab86fe304",
+    "ALIGNMENT.md": "6ad3aca4e67e654b5aef5a6c76ef1a7b27b475452816bd38aeb75756211899b1",
+    "LLM_HANDOFF.md": "97ef26d967074ed827e721d3d53d52e30d2b4ca86f38bfe1c3f347cc8c8d519d",
+    "src/runtime/adapter.rs": "35d2f9eff8eaaf84a4c45d5a1d1917138fb42732c2a5c389cdb0cacad8546ad9",
+    "src/export.rs": "d09ce57bea1e907db328c4812c73187a9282897555802f2f5938b8cb35ce39ab",
+    "src/generate.rs": "8a475cbc878b60ffb7d48d7f1d8ab561dc7d43589c45866524bab3a61a8f6c27",
+    "tests/test_backend_adapters.rs": "35254f0d7f58980c70d189570aed4f20cf9a95618c3235aea56be019d1ab7e4a",
+    "src/screen/camera.rs": "a21c5e5e8b1b19950e45dcf12e74724efe2e1d3ca39eca65fe69ad56271bf407",
+    "tests/test_camera_capture.rs": "062fc9cf282a729444d2252f767d567653511dd88e484840122a7e477d023766",
+    "docs/HARDWARE_MATRIX.md": "564a933e159d14726d0f59bcd0ad82d3a2a05007cb21f9b5efdb41c1c5bcb8dc"
+  }
+}

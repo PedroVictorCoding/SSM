@@ -1,0 +1,9 @@
+Compile: rustc --edition=2024 docs/qa/trust_boundary_probe.rs --extern sail=target/debug/deps/libsail-d0ef99ebc1b15d24.rlib --extern serde_json=target/debug/deps/libserde_json-e85fe35c90d04270.rlib -L dependency=target/debug/deps -o /tmp/sail_trust_boundary_probe_after
+Run exit code: 0
+absolute protected source policy check: Ok(())
+out-of-root read: Success, marker returned: true
+out-of-root deletion: Success, file removed: true
+protected-name workspace write: Success, sentinel replaced: true
+revoked+malformed+cancelled cache request: Success, from_cache: true, returned bytes: 15
+1ms deadline on 40ms fixture: Success, elapsed ms: 43
+missing test evidence postcondition: Err("Postcondition failed: Artifact is not from the requested test runner invocation for 'never-executed-test'")

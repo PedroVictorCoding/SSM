@@ -1,0 +1,22 @@
+{
+  "review": "REVIEW-20261025-05",
+  "before": {
+    "src/capability.rs": "1e31efa57008e700a4de06fcf310ec2655fae03ad1b1083cdc7a3a994c96a3dd",
+    "src/tool/workspace.rs": "faced503b9049a0c9452c6a810dbc7f8d5ba21ffcae88b597db54621136cf0dc",
+    "src/tool/broker.rs": "5372fa4d605f5b521b56159a0f6aa20d915a38a34a8f5d924e0762f33be2f9e1",
+    "tests/test_alignment_boundaries.rs": "715706312511e4c59353000ee13b5e60525e3b067800aa88e87c3f06f24ae7a6",
+    "tests/test_tool_execution_broker.rs": "f20baff658962f5d0bb2c7301664e06c6d81766982fc2cdfdc75e633b72f046c",
+    "docs/qa/path_policy_integration_probe.rs": "5bc22759cc1005bedc5f7570c770ab56721931cb67de573ea9319450a8228a97"
+  },
+  "after": {
+    "src/capability.rs": "1e31efa57008e700a4de06fcf310ec2655fae03ad1b1083cdc7a3a994c96a3dd",
+    "src/tool/workspace.rs": "faced503b9049a0c9452c6a810dbc7f8d5ba21ffcae88b597db54621136cf0dc",
+    "src/tool/broker.rs": "5372fa4d605f5b521b56159a0f6aa20d915a38a34a8f5d924e0762f33be2f9e1",
+    "tests/test_alignment_boundaries.rs": "715706312511e4c59353000ee13b5e60525e3b067800aa88e87c3f06f24ae7a6",
+    "tests/test_tool_execution_broker.rs": "f20baff658962f5d0bb2c7301664e06c6d81766982fc2cdfdc75e633b72f046c",
+    "docs/qa/path_policy_integration_probe.rs": "5bc22759cc1005bedc5f7570c770ab56721931cb67de573ea9319450a8228a97"
+  },
+  "library": "target/debug/deps/libsail-d0ef99ebc1b15d24.rlib",
+  "library_sha256": "e26caf0d6a9da4dca14342837ff88e5f84876152bd227b6f33965fafe3b7438f",
+  "source_changed_during_probe": []
+}

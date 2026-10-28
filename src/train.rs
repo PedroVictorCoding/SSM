@@ -4,6 +4,7 @@
 use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use std::time::Instant;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -18,12 +19,18 @@ use rand::SeedableRng;
 use rand_chacha::ChaCha12Rng as StdRng;
 use serde::{Deserialize, Serialize};
 
+use crate::data::multimodal::{
+    IncomingMultimodalWatcher, OmnimodalDataset, OmnimodalRecord, OmnimodalSnapshot,
+};
 use crate::data::{
     BpeTokenizer, CharTokenizer, IncomingDirectoryWatcher, StreamDataset, TextDataset, Tokenizer,
     batch_from_starts, eval_starts, random_batch,
 };
+use crate::export::pack_omnimodal_artifact;
 use crate::generate::{SamplingConfig, generate_stateful};
+use crate::model::multimodal::{OmnimodalConfig, OmnimodalLm, train_omnimodal_step};
 use crate::model::{HybridLm, HybridLmConfig};
+use crate::runtime::resource::ResourceScheduler;
 
 /// Checkpoint state metadata saved alongside model and optimizer weights.
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -38,6 +45,14 @@ pub struct CheckpointState {
     pub config_file: Option<String>,
     pub stream_file: Option<String>,
     pub validation_file: Option<String>,
+    #[serde(default)]
+    pub seq: u64,
+    #[serde(default)]
+    pub ack_step: usize,
+    #[serde(default)]
+    pub ack_tokens: usize,
+    #[serde(default)]
+    pub ack_receipt: Option<String>,
 }
 
 #[derive(Config, Debug)]
@@ -96,6 +111,12 @@ pub struct TrainConfig {
     /// Stop early after this many minutes (0 = no limit).
     #[config(default = 0.0)]
     pub max_minutes: f64,
+    /// Maximum previous checkpoint generations retained on disk (0 = keep all).
+    #[config(default = 5)]
+    pub keep_checkpoints: usize,
+    /// Maximum experience replay buffer samples (0 = unbounded).
+    #[config(default = 100000)]
+    pub max_replay_samples: usize,
     #[config(default = 42)]
     pub seed: u64,
 }
@@ -286,6 +307,17 @@ fn save_checkpoint<B: AutodiffBackend, O: Optimizer<HybridLm<B>, B>>(
     } else {
         (None, None)
     };
+    let ack_tokens = stream
+        .as_ref()
+        .map(|(dataset, _, _)| dataset.total_tokens())
+        .unwrap_or(0);
+    let seq = (step * cfg.batch_size * cfg.seq_len) as u64;
+    let ack_receipt = stream.as_ref().and_then(|(_, watcher, _)| {
+        watcher
+            .as_ref()
+            .map(|w| format!("{:x}", w.processed_files().len()))
+    });
+
     let state = CheckpointState {
         step,
         best_val_loss: if best_val_loss.is_finite() {
@@ -301,6 +333,10 @@ fn save_checkpoint<B: AutodiffBackend, O: Optimizer<HybridLm<B>, B>>(
         config_file: Some(format!("{relative}/model_config.json")),
         stream_file,
         validation_file,
+        seq,
+        ack_step: step,
+        ack_tokens,
+        ack_receipt,
     };
     fs::write(dir.join("state.json"), serde_json::to_vec_pretty(&state)?)?;
     for file in fs::read_dir(&dir)? {
@@ -320,7 +356,51 @@ fn save_checkpoint<B: AutodiffBackend, O: Optimizer<HybridLm<B>, B>>(
     crate::storage::atomic_write(
         &paths.checkpoint_state(),
         &serde_json::to_vec_pretty(&state)?,
-    )
+    )?;
+    prune_old_checkpoints(paths, cfg.keep_checkpoints, None);
+    Ok(())
+}
+
+fn prune_old_checkpoints(paths: &RunPaths, keep: usize, best_checkpoint: Option<&str>) {
+    if keep == 0 {
+        return;
+    }
+    let cp_dir = paths.dir.join("checkpoints");
+    let entries = match fs::read_dir(&cp_dir) {
+        Ok(e) => e,
+        Err(_) => return,
+    };
+    let mut dirs: Vec<(usize, PathBuf)> = Vec::new();
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            if let Some(name) = path.file_name().and_then(|s| s.to_str()) {
+                if name.starts_with("step-") {
+                    let step_part = name
+                        .strip_prefix("step-")
+                        .unwrap_or("")
+                        .split('-')
+                        .next()
+                        .unwrap_or("");
+                    if let Ok(step_num) = step_part.parse::<usize>() {
+                        dirs.push((step_num, path));
+                    }
+                }
+            }
+        }
+    }
+    dirs.sort_by_key(|(s, _)| *s);
+    if dirs.len() > keep {
+        let to_remove = dirs.len() - keep;
+        for (_, dir_path) in &dirs[..to_remove] {
+            if let Some(best) = best_checkpoint {
+                if dir_path.to_string_lossy().contains(best) {
+                    continue;
+                }
+            }
+            let _ = fs::remove_dir_all(dir_path);
+        }
+    }
 }
 
 /// Atomically publish a small snapshot so readers never see half-written JSON.
@@ -341,8 +421,8 @@ fn publish_status(paths: &RunPaths, phase: &str, step: usize, elapsed: f64) -> s
 
 /// One small host read for all parameter/gradient health flags, rather than
 /// copying every tensor or synchronizing after each parameter.
-fn check_finite<B: AutodiffBackend>(
-    model: &HybridLm<B>,
+pub fn check_finite<B: AutodiffBackend, M: Module<B>>(
+    model: &M,
     grads: Option<&GradientsParams>,
 ) -> Result<(), String> {
     struct Check<'a, B: AutodiffBackend> {
@@ -393,7 +473,7 @@ fn check_finite<B: AutodiffBackend>(
     Ok(())
 }
 
-fn numerical_failure(
+pub fn numerical_failure(
     paths: &RunPaths,
     step: usize,
     elapsed: f64,
@@ -441,6 +521,17 @@ pub fn train<B: AutodiffBackend>(
     text: &str,
     out_dir: impl AsRef<Path>,
     device: &B::Device,
+) -> std::io::Result<TrainSummary> {
+    train_with_scheduler::<B>(cfg, text, out_dir, device, None)
+}
+
+/// Trains a model on `text` with optional resource scheduler preemption.
+pub fn train_with_scheduler<B: AutodiffBackend>(
+    cfg: TrainConfig,
+    text: &str,
+    out_dir: impl AsRef<Path>,
+    device: &B::Device,
+    scheduler: Option<Arc<ResourceScheduler>>,
 ) -> std::io::Result<TrainSummary> {
     validate_config(&cfg, false)?;
     let paths = RunPaths::new(out_dir);
@@ -518,6 +609,15 @@ pub fn train<B: AutodiffBackend>(
     let mut best_val = f64::INFINITY;
 
     if let Some(state) = resume_state {
+        println!(
+            "[Resume Committed State] SEQ={} | ACK_STEP={} | ACK_TOKENS={} | step {} | best val loss: {:.4} | previous elapsed: {:.1}s",
+            state.seq,
+            state.ack_step,
+            state.ack_tokens,
+            state.step,
+            state.best_val_loss,
+            state.elapsed_secs
+        );
         start_step = state.step;
         best_val = state.best_val_loss;
         accumulated_elapsed = state.elapsed_secs;
@@ -646,6 +746,20 @@ pub fn train<B: AutodiffBackend>(
     let mut steps_run = start_step;
 
     for step in (start_step + 1)..=cfg.steps {
+        if let Some(sched) = &scheduler {
+            if sched.should_training_yield() {
+                sched.acknowledge_training_yield();
+                let current_elapsed = accumulated_elapsed + start.elapsed().as_secs_f64();
+                publish_status(&paths, "paused_for_conversation", step - 1, current_elapsed)?;
+                while sched.should_training_yield() {
+                    std::thread::sleep(std::time::Duration::from_millis(10));
+                }
+                sched.record_training_resumed();
+                let resume_elapsed = accumulated_elapsed + start.elapsed().as_secs_f64();
+                publish_status(&paths, "training", step - 1, resume_elapsed)?;
+            }
+        }
+        let step_start = Instant::now();
         profiler.begin::<B>(step, device);
         let lr = learning_rate(&cfg, step);
         let batch =
@@ -712,6 +826,10 @@ pub fn train<B: AutodiffBackend>(
         };
         model = optim.step(lr, model, grads);
         profiler.stage::<B>("optimizer", device);
+        let step_duration_ms = step_start.elapsed().as_secs_f64() * 1000.0;
+        if let Some(sched) = &scheduler {
+            sched.record_training_step_duration(step_duration_ms);
+        }
         steps_run = step;
 
         let out_of_time =
@@ -861,11 +979,34 @@ pub fn stream_train<B: AutodiffBackend>(
 pub fn stream_train_with_validation<B: AutodiffBackend>(
     cfg: TrainConfig,
     dataset: StreamDataset,
+    watcher: Option<IncomingDirectoryWatcher>,
+    tokenizer: Tokenizer,
+    out_dir: impl AsRef<Path>,
+    device: &B::Device,
+    validation_tokens: Option<Vec<u32>>,
+) -> std::io::Result<TrainSummary> {
+    stream_train_with_validation_and_scheduler::<B>(
+        cfg,
+        dataset,
+        watcher,
+        tokenizer,
+        out_dir,
+        device,
+        validation_tokens,
+        None,
+    )
+}
+
+/// Continuously trains a model on a dynamic, append-only `StreamDataset` with optional scheduler preemption.
+pub fn stream_train_with_validation_and_scheduler<B: AutodiffBackend>(
+    cfg: TrainConfig,
+    dataset: StreamDataset,
     mut watcher: Option<IncomingDirectoryWatcher>,
     mut tokenizer: Tokenizer,
     out_dir: impl AsRef<Path>,
     device: &B::Device,
     validation_tokens: Option<Vec<u32>>,
+    scheduler: Option<Arc<ResourceScheduler>>,
 ) -> std::io::Result<TrainSummary> {
     validate_config(&cfg, true)?;
     let paths = RunPaths::new(out_dir);
@@ -959,6 +1100,15 @@ pub fn stream_train_with_validation<B: AutodiffBackend>(
     let mut accumulated_elapsed = 0.0;
     let mut best_val = f64::MAX;
     if let Some(state) = resume_state {
+        println!(
+            "[Resume Streaming State] SEQ={} | ACK_STEP={} | ACK_TOKENS={} | step {} | best val loss: {:.4} | previous elapsed: {:.1}s",
+            state.seq,
+            state.ack_step,
+            state.ack_tokens,
+            state.step,
+            state.best_val_loss,
+            state.elapsed_secs
+        );
         step = state.step;
         accumulated_elapsed = state.elapsed_secs;
         best_val = state.best_val_loss;
@@ -1052,6 +1202,19 @@ pub fn stream_train_with_validation<B: AutodiffBackend>(
     let mut last_train_loss = 0.0;
     let mut last_scan: Option<Instant> = None;
     while step < cfg.steps {
+        if let Some(sched) = &scheduler {
+            if sched.should_training_yield() {
+                sched.acknowledge_training_yield();
+                let current_elapsed = accumulated_elapsed + start.elapsed().as_secs_f64();
+                publish_status(&paths, "paused_for_conversation", step, current_elapsed)?;
+                while sched.should_training_yield() {
+                    std::thread::sleep(std::time::Duration::from_millis(10));
+                }
+                sched.record_training_resumed();
+                let resume_elapsed = accumulated_elapsed + start.elapsed().as_secs_f64();
+                publish_status(&paths, "training", step, resume_elapsed)?;
+            }
+        }
         if cfg.max_minutes > 0.0 && start.elapsed().as_secs_f64() >= cfg.max_minutes * 60.0 {
             break;
         }
@@ -1080,6 +1243,7 @@ pub fn stream_train_with_validation<B: AutodiffBackend>(
             }
         };
         step += 1;
+        let step_start = Instant::now();
         profiler.stage::<B>("batch", device);
         let lr = learning_rate(&cfg, step);
         let observe = cfg.viz_every > 0
@@ -1130,6 +1294,10 @@ pub fn stream_train_with_validation<B: AutodiffBackend>(
         };
         model = optim.step(lr, model, grads);
         profiler.stage::<B>("optimizer", device);
+        let step_duration_ms = step_start.elapsed().as_secs_f64() * 1000.0;
+        if let Some(sched) = &scheduler {
+            sched.record_training_step_duration(step_duration_ms);
+        }
         last_train_loss = scalar;
         running += scalar;
         count += 1;
@@ -1268,6 +1436,376 @@ pub fn stream_train_with_validation<B: AutodiffBackend>(
         steps_run: step,
         best_val_loss: best_val,
         final_train_loss: last_train_loss,
+        elapsed_secs: elapsed,
+    })
+}
+
+/// Online streaming training for Omnimodal models (Audio, Vision, Text) with live .sea artifact publishing.
+pub fn stream_train_omnimodal<B: AutodiffBackend>(
+    cfg: TrainConfig,
+    omni_cfg: OmnimodalConfig,
+    dataset: OmnimodalDataset,
+    watcher: Option<IncomingMultimodalWatcher>,
+    tokenizer: Tokenizer,
+    out_dir: impl AsRef<Path>,
+    device: &B::Device,
+) -> std::io::Result<TrainSummary> {
+    stream_train_omnimodal_with_validation::<B>(
+        cfg, omni_cfg, dataset, watcher, tokenizer, out_dir, device, None,
+    )
+}
+
+/// Online streaming training for Omnimodal models with frozen validation, snapshot replay, and SEQ/ACK tracking.
+pub fn stream_train_omnimodal_with_validation<B: AutodiffBackend>(
+    cfg: TrainConfig,
+    omni_cfg: OmnimodalConfig,
+    dataset: OmnimodalDataset,
+    watcher: Option<IncomingMultimodalWatcher>,
+    tokenizer: Tokenizer,
+    out_dir: impl AsRef<Path>,
+    device: &B::Device,
+    validation_records: Option<Vec<OmnimodalRecord>>,
+) -> std::io::Result<TrainSummary> {
+    stream_train_omnimodal_with_validation_and_scheduler::<B>(
+        cfg,
+        omni_cfg,
+        dataset,
+        watcher,
+        tokenizer,
+        out_dir,
+        device,
+        validation_records,
+        None,
+    )
+}
+
+/// Online streaming training for Omnimodal models with frozen validation, snapshot replay, SEQ/ACK tracking, and scheduler preemption.
+pub fn stream_train_omnimodal_with_validation_and_scheduler<B: AutodiffBackend>(
+    cfg: TrainConfig,
+    omni_cfg: OmnimodalConfig,
+    dataset: OmnimodalDataset,
+    mut watcher: Option<IncomingMultimodalWatcher>,
+    tokenizer: Tokenizer,
+    out_dir: impl AsRef<Path>,
+    device: &B::Device,
+    validation_records: Option<Vec<OmnimodalRecord>>,
+    scheduler: Option<Arc<ResourceScheduler>>,
+) -> std::io::Result<TrainSummary> {
+    validate_config(&cfg, false)?;
+    let paths = RunPaths::new(out_dir);
+    fs::create_dir_all(&paths.dir)?;
+    let live_sea = paths.dir.join("model.sea");
+    let resume_state = checkpoint_metadata(&paths, cfg.resume)?;
+    let mut cfg = cfg;
+    let mut omni_cfg = omni_cfg;
+    if resume_state.is_some() && paths.dir.join("omnimodal_config.json").exists() {
+        if let Ok(loaded) = OmnimodalConfig::load(paths.dir.join("omnimodal_config.json")) {
+            omni_cfg = loaded;
+        }
+    }
+    cfg.model.vocab_size = tokenizer.vocab_size();
+    omni_cfg.hybrid.vocab_size = tokenizer.vocab_size();
+
+    tokenizer.save(paths.vocab())?;
+    omni_cfg.save(paths.dir.join("omnimodal_config.json"))?;
+    cfg.save(paths.train_config())?;
+
+    B::seed(cfg.seed);
+    let mut rng = StdRng::seed_from_u64(cfg.seed);
+    let mut model: OmnimodalLm<B> = omni_cfg.init(device);
+    let mut optim = AdamWConfig::new()
+        .with_weight_decay(cfg.weight_decay)
+        .with_grad_clipping(Some(GradientClippingConfig::Norm(cfg.grad_clip)))
+        .init();
+    let loss_fn = CrossEntropyLossConfig::new().init(device);
+
+    let mut step = 0;
+    let mut accumulated_elapsed = 0.0;
+    let mut best_val = f64::MAX;
+    let mut seq = 0u64;
+
+    let validation = if let Some(state) = &resume_state {
+        if state.stream_file.is_some() {
+            let stream_p = checkpoint_path(&paths, &state.stream_file, "omni_stream.json")?;
+            if !stream_p.exists() {
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    format!(
+                        "Committed stream checkpoint missing: {}",
+                        stream_p.display()
+                    ),
+                ));
+            }
+            let snapshot: OmnimodalSnapshot = serde_json::from_slice(&fs::read(stream_p)?)?;
+            dataset.restore(&snapshot).map_err(std::io::Error::other)?;
+            if let Some(w) = watcher.as_mut() {
+                w.restore_processed_files(&snapshot.processed_files);
+            }
+        }
+        if state.validation_file.is_some() {
+            let val_p = checkpoint_path(&paths, &state.validation_file, "omni_val.json")?;
+            if !val_p.exists() {
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    format!("Committed validation file missing: {}", val_p.display()),
+                ));
+            }
+            let saved_val: Vec<OmnimodalRecord> = serde_json::from_slice(&fs::read(val_p)?)?;
+            saved_val
+        } else {
+            validation_records.unwrap_or_else(|| dataset.reserve_validation(cfg.val_fraction))
+        }
+    } else {
+        validation_records.unwrap_or_else(|| dataset.reserve_validation(cfg.val_fraction))
+    };
+
+    if let Some(state) = resume_state {
+        println!(
+            "[Resume Omnimodal State] SEQ={} | ACK_STEP={} | ACK_TOKENS={} | step {} | best val loss: {:.4}",
+            state.seq, state.ack_step, state.ack_tokens, state.step, state.best_val_loss
+        );
+        step = state.step;
+        accumulated_elapsed = state.elapsed_secs;
+        best_val = state.best_val_loss;
+        seq = state.seq;
+
+        let legacy = "model";
+        let model_path = checkpoint_path(&paths, &state.model_file, legacy)?;
+        if !model_path.with_extension("mpk").exists() && !model_path.exists() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::NotFound,
+                format!(
+                    "Committed omnimodal model file missing: {}",
+                    model_path.display()
+                ),
+            ));
+        }
+        model = model
+            .load_file(&model_path, &recorder(), device)
+            .map_err(|e| {
+                std::io::Error::other(format!("Failed to restore omnimodal model: {e}"))
+            })?;
+
+        let optimizer_path = checkpoint_path(&paths, &state.optimizer_file, "optimizer")?;
+        if !optimizer_path.with_extension("mpk").exists() && !optimizer_path.exists() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::NotFound,
+                format!(
+                    "Committed optimizer file missing: {}",
+                    optimizer_path.display()
+                ),
+            ));
+        }
+        optim = optim.load_record(
+            recorder()
+                .load(optimizer_path, device)
+                .map_err(|e| std::io::Error::other(format!("Failed to restore optimizer: {e}")))?,
+        );
+
+        if let Some(saved_rng) = state.rng {
+            rng = saved_rng;
+        }
+        if let Some(w) = watcher.as_mut() {
+            if let Some(receipt) = &state.ack_receipt {
+                let receipt_path = paths.dir.join(receipt);
+                if receipt_path.exists() {
+                    if let Ok(bytes) = fs::read(&receipt_path) {
+                        if let Ok(val) = serde_json::from_slice::<serde_json::Value>(&bytes) {
+                            if let Some(files) = val.get("processed_files").and_then(|f| {
+                                serde_json::from_value::<Vec<PathBuf>>(f.clone()).ok()
+                            }) {
+                                w.restore_processed_files(&files);
+                            }
+                        } else if let Ok(files) = serde_json::from_slice::<Vec<PathBuf>>(&bytes) {
+                            w.restore_processed_files(&files);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    publish_status(&paths, "training", step, accumulated_elapsed)?;
+    let start = Instant::now();
+    let mut last_train_loss = 0.0f32;
+
+    while step < cfg.steps {
+        if let Some(sched) = &scheduler {
+            if sched.should_training_yield() {
+                sched.acknowledge_training_yield();
+                let current_elapsed = accumulated_elapsed + start.elapsed().as_secs_f64();
+                publish_status(&paths, "paused_for_conversation", step, current_elapsed)?;
+                while sched.should_training_yield() {
+                    std::thread::sleep(std::time::Duration::from_millis(10));
+                }
+                sched.record_training_resumed();
+                let resume_elapsed = accumulated_elapsed + start.elapsed().as_secs_f64();
+                publish_status(&paths, "training", step, resume_elapsed)?;
+            }
+        }
+        let current_elapsed = accumulated_elapsed + start.elapsed().as_secs_f64();
+        if cfg.max_minutes > 0.0 && current_elapsed >= cfg.max_minutes * 60.0 {
+            println!(
+                "Wall clock budget reached ({:.1} min); stopping.",
+                cfg.max_minutes
+            );
+            break;
+        }
+
+        // Ingest new multimodal chunks if watcher is active
+        if let Some(w) = watcher.as_mut() {
+            w.scan_and_ingest(&dataset, omni_cfg.audio.in_channels);
+        }
+
+        // Sample a multimodal batch; do not increment step if waiting for feeder
+        let batch = match dataset.sample_batch::<B, _>(cfg.batch_size, &tokenizer, &mut rng, device)
+        {
+            Some(b) => b,
+            None => {
+                std::thread::sleep(std::time::Duration::from_millis(50));
+                continue;
+            }
+        };
+
+        step += 1;
+        let step_start = Instant::now();
+        let lr = learning_rate(&cfg, step);
+        let (updated, loss) = match train_omnimodal_step(model, &mut optim, &batch, &loss_fn, lr) {
+            Ok(pair) => pair,
+            Err(msg) => {
+                let elapsed = accumulated_elapsed + start.elapsed().as_secs_f64();
+                return Err(numerical_failure(&paths, step, elapsed, msg));
+            }
+        };
+        model = updated;
+        let step_duration_ms = step_start.elapsed().as_secs_f64() * 1000.0;
+        if let Some(sched) = &scheduler {
+            sched.record_training_step_duration(step_duration_ms);
+        }
+        last_train_loss = loss;
+
+        seq += (cfg.batch_size * cfg.seq_len) as u64;
+
+        if cfg.log_every > 0 && (step % cfg.log_every == 0 || step == cfg.steps) {
+            let elapsed = accumulated_elapsed + start.elapsed().as_secs_f64();
+            println!(
+                "[Omnimodal Step {step:4}/{}] loss: {loss:.4} | lr: {lr:.2e} | SEQ={seq} | samples={}",
+                cfg.steps,
+                dataset.len()
+            );
+            publish_status(&paths, "training", step, elapsed)?;
+        }
+
+        // Periodic frozen validation
+        if cfg.eval_every > 0
+            && (step % cfg.eval_every == 0 || step == cfg.steps)
+            && !validation.is_empty()
+        {
+            if let Some(val_batch) =
+                crate::data::multimodal::batch_from_records::<B>(&validation, &tokenizer, device)
+            {
+                let val_loss_tensor = model.compute_loss(&val_batch, &loss_fn);
+                let val_loss: f32 = val_loss_tensor.into_data().as_slice::<f32>().unwrap()[0];
+                if (val_loss as f64) < best_val {
+                    best_val = val_loss as f64;
+                }
+                println!("  eval | val loss: {val_loss:.4} | best: {best_val:.4}");
+            }
+        }
+
+        let is_last = step == cfg.steps;
+        let should_save = (cfg.save_every > 0 && step % cfg.save_every == 0) || is_last;
+        if should_save {
+            let elapsed = accumulated_elapsed + start.elapsed().as_secs_f64();
+
+            if let Err(msg) = check_finite(&model, None) {
+                return Err(numerical_failure(
+                    &paths,
+                    step,
+                    elapsed,
+                    format!("Refusing to save non-finite model weights: {msg}"),
+                ));
+            }
+
+            let stamp = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_nanos();
+            let relative = format!("checkpoints/step-{step:08}-{}-{stamp}", std::process::id());
+            let dir = paths.dir.join(&relative);
+            fs::create_dir_all(&dir)?;
+
+            model
+                .clone()
+                .save_file(dir.join("model"), &recorder())
+                .map_err(|e| std::io::Error::other(e.to_string()))?;
+            recorder()
+                .record(optim.to_record(), dir.join("optimizer"))
+                .map_err(|e| std::io::Error::other(e.to_string()))?;
+            omni_cfg.save(dir.join("omnimodal_config.json"))?;
+
+            let mut snapshot = dataset.snapshot();
+            snapshot.processed_files = watcher
+                .as_ref()
+                .map(|w| w.processed_files())
+                .unwrap_or_default();
+            fs::write(dir.join("omni_stream.json"), serde_json::to_vec(&snapshot)?)?;
+            fs::write(dir.join("omni_val.json"), serde_json::to_vec(&validation)?)?;
+
+            let receipt_file = if let Some(w) = watcher.as_ref() {
+                let r_name = format!("{relative}/ingestion.json");
+                fs::write(
+                    dir.join("ingestion.json"),
+                    serde_json::to_vec(&w.ingestion_receipt())?,
+                )?;
+                fs::write(
+                    dir.join("processed_files.json"),
+                    serde_json::to_vec(&w.processed_files())?,
+                )?;
+                Some(r_name)
+            } else {
+                None
+            };
+
+            let cp_state = CheckpointState {
+                step,
+                best_val_loss: best_val,
+                elapsed_secs: elapsed,
+                lr,
+                rng: Some(rng.clone()),
+                model_file: Some(format!("{relative}/model")),
+                optimizer_file: Some(format!("{relative}/optimizer")),
+                config_file: Some(format!("{relative}/omnimodal_config.json")),
+                stream_file: Some(format!("{relative}/omni_stream.json")),
+                validation_file: Some(format!("{relative}/omni_val.json")),
+                seq,
+                ack_step: step,
+                ack_tokens: dataset.len(),
+                ack_receipt: receipt_file,
+            };
+
+            let cp_bytes = serde_json::to_vec_pretty(&cp_state)?;
+            fs::write(dir.join("checkpoint.json"), &cp_bytes)?;
+            crate::storage::atomic_write(&paths.checkpoint_state(), &cp_bytes)?;
+            prune_old_checkpoints(&paths, cfg.keep_checkpoints, None);
+
+            // Publish live .sea artifact
+            let valid_model = model.valid();
+            pack_omnimodal_artifact(&valid_model, &omni_cfg, &tokenizer, &live_sea)
+                .map_err(std::io::Error::other)?;
+            println!(
+                "[Omnimodal Checkpoint] SEQ={seq} | ACK_STEP={step} | Published live artifact: {}",
+                live_sea.display()
+            );
+        }
+    }
+
+    let elapsed = accumulated_elapsed + start.elapsed().as_secs_f64();
+    publish_status(&paths, "finished", step, elapsed)?;
+    Ok(TrainSummary {
+        steps_run: step,
+        best_val_loss: best_val,
+        final_train_loss: last_train_loss as f64,
         elapsed_secs: elapsed,
     })
 }

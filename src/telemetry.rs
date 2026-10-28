@@ -7,17 +7,41 @@ use serde_json::{Value, json};
 use std::{fs, io, path::Path};
 
 fn stats(values: &[f32]) -> Value {
-    let finite: Vec<f64> = values
-        .iter()
-        .copied()
-        .filter(|v| v.is_finite())
-        .map(f64::from)
-        .collect();
-    let n = finite.len().max(1) as f64;
-    json!({"mean": finite.iter().sum::<f64>() / n,
-        "rms": (finite.iter().map(|v| v*v).sum::<f64>()/n).sqrt(),
-        "min": finite.iter().copied().reduce(f64::min), "max": finite.iter().copied().reduce(f64::max),
-        "non_finite": values.len()-finite.len()})
+    let mut count = 0usize;
+    let mut sum = 0.0f64;
+    let mut sum_sq = 0.0f64;
+    let mut min = f64::INFINITY;
+    let mut max = f64::NEG_INFINITY;
+    let mut non_finite = 0usize;
+
+    for &v in values {
+        if v.is_finite() {
+            let vf = v as f64;
+            count += 1;
+            sum += vf;
+            sum_sq += vf * vf;
+            if vf < min {
+                min = vf;
+            }
+            if vf > max {
+                max = vf;
+            }
+        } else {
+            non_finite += 1;
+        }
+    }
+
+    let n = count.max(1) as f64;
+    let min_val = if count > 0 { Some(min) } else { None };
+    let max_val = if count > 0 { Some(max) } else { None };
+
+    json!({
+        "mean": sum / n,
+        "rms": (sum_sq / n).sqrt(),
+        "min": min_val,
+        "max": max_val,
+        "non_finite": non_finite,
+    })
 }
 
 struct Capture<'a> {
@@ -127,6 +151,12 @@ pub fn publish<B: AutodiffBackend>(
     c.linear("lm_head", &model.lm_head);
     let snapshot = json!({"step": step, "weights_step": step.saturating_sub(1),
         "timing": "before_optimizer", "max_values": max_values, "tensors": c.tensors, "activations": activations});
-    fs::write(dir.join("neural.json.tmp"), serde_json::to_vec(&snapshot)?)?;
-    fs::rename(dir.join("neural.json.tmp"), dir.join("neural.json"))
+    let tmp_path = dir.join("neural.json.tmp");
+    let file = fs::File::create(&tmp_path)?;
+    let mut writer = io::BufWriter::with_capacity(64 * 1024, file);
+    serde_json::to_writer(&mut writer, &snapshot)
+        .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+    use std::io::Write;
+    writer.flush()?;
+    fs::rename(tmp_path, dir.join("neural.json"))
 }

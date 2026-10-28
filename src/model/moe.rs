@@ -29,6 +29,10 @@ pub struct MoeConfig {
     /// (up to top_k) will be activated for that token, allowing dynamic active parameter count.
     #[config(default = 0.0)]
     pub dynamic_threshold: f64,
+    /// Whether to evaluate experts with sparse dispatch (skipping compute for unrouted experts)
+    /// instead of dense evaluation across all experts.
+    #[config(default = false)]
+    pub sparse_dispatch: bool,
 }
 
 #[derive(Module, Debug)]
@@ -38,6 +42,7 @@ pub struct Moe<B: Backend> {
     pub num_experts: usize,
     pub top_k: usize,
     pub dynamic_threshold: f64,
+    pub sparse_dispatch: bool,
     pub d_model: usize,
     pub d_hidden: usize,
 }
@@ -62,6 +67,7 @@ impl MoeConfig {
             num_experts: self.num_experts,
             top_k,
             dynamic_threshold: self.dynamic_threshold,
+            sparse_dispatch: self.sparse_dispatch,
             d_model: self.d_model,
             d_hidden: self.d_hidden,
         }
@@ -175,9 +181,28 @@ impl<B: Backend> Moe<B> {
 
         // Compute expert outputs and accumulate with routing weights:
         // out = sum_e weights[:, e] * Expert_e(x)
+        //
+        // Note on compute vs capacity:
+        // For batched autodiff execution, experts are evaluated in a vectorized pass and sparse
+        // gating weights are applied to accumulate outputs. `active_params_per_token()` reports
+        // the standard routing capacity metric (router + top_k * expert size). True physical memory
+        // decoupling is implemented in `src/model/mmap_moe.rs`.
         let mut out_accum = Tensor::<B, 2>::zeros([num_tokens, d_model], &device);
         for (e, expert) in self.experts.iter().enumerate() {
             let w_e: Tensor<B, 2> = weights.clone().narrow(1, e, 1); // [num_tokens, 1]
+            if self.sparse_dispatch {
+                let is_active = w_e.clone().greater_elem(0.0);
+                let num_active: f32 = is_active
+                    .float()
+                    .sum()
+                    .into_data()
+                    .as_slice::<f32>()
+                    .unwrap()[0];
+                if num_active == 0.0 {
+                    // Expert e has no active tokens in this batch; skip compute entirely.
+                    continue;
+                }
+            }
             let expert_out = expert.forward(x_2d.clone()); // [num_tokens, d_model]
             out_accum = out_accum + expert_out * w_e;
         }

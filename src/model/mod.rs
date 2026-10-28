@@ -28,6 +28,7 @@ pub mod mamba;
 pub mod mlp;
 pub mod mmap_moe;
 pub mod moe;
+pub mod multimodal;
 pub mod norm;
 pub mod scan;
 
@@ -37,4 +38,8 @@ pub use mamba::{Mamba, MambaConfig, MambaState};
 pub use mlp::{SwiGlu, SwiGluConfig};
 pub use mmap_moe::{MmapExpertStorage, StreamingMoe};
 pub use moe::{Moe, MoeConfig};
+pub use multimodal::{
+    AudioProjector, AudioProjectorConfig, OmnimodalBatch, OmnimodalConfig, OmnimodalLm,
+    VisionProjector, VisionProjectorConfig, train_omnimodal_step,
+};
 pub use norm::{RmsNorm, RmsNormConfig};

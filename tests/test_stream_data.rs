@@ -13,6 +13,7 @@ fn test_stream_dataset_append_and_distribution() {
         replay_ratio: 0.4,
         min_tokens_to_train: 10,
         scan_interval_ms: 100,
+        ..Default::default()
     };
     let dataset = StreamDataset::new(initial_tokens, config);
 
@@ -36,6 +37,7 @@ fn test_stream_dataset_experience_replay_batch_sampling() {
         replay_ratio: 0.5,
         min_tokens_to_train: 20,
         scan_interval_ms: 100,
+        ..Default::default()
     };
     let dataset = StreamDataset::new(initial_tokens, config);
     // Append 100 new tokens

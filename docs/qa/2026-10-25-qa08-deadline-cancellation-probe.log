@@ -1,0 +1,14 @@
+Probe: docs/qa/deadline_cancellation_probe.rs
+Scope: in-process, side-effect-free typed tools only; no filesystem, process, or network effects.
+
+deadline result: TimedOut; returned after 50ms
+result available within 30ms of in-flight cancellation: false
+result after tool release: Cancelled
+
+Interpretation: the broker classifies the completed call after its deadline, but it
+does not stop or return from arbitrary synchronous TypedTool work at the deadline.
+Likewise, a cancellation token is observed only after the non-cooperative tool is
+released. A TimedOut/Cancelled label is not evidence of prompt in-flight stopping.
+
+Compilation/execution exited 0. The probe assertions verify final classifications;
+the printed wall/liveness observations demonstrate the still-open lifecycle gap.

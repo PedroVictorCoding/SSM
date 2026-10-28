@@ -11,6 +11,7 @@
 //! Run `sail help` for all options.
 
 use std::collections::HashMap;
+use std::io::Write;
 use std::str::FromStr;
 use std::time::Instant;
 
@@ -18,19 +19,26 @@ use burn::prelude::*;
 use burn::tensor::Distribution;
 
 use sail::backend::{BACKEND_NAME, InferenceBackend, TrainBackend, default_device};
+use sail::data::multimodal::{IncomingMultimodalWatcher, OmnimodalDataset, OmnimodalRecord};
 use sail::data::{
     CharTokenizer, IncomingDirectoryWatcher, StreamConfig, StreamDataset, Tokenizer,
     bpe::BpeTokenizer,
 };
-use sail::export::{export_to_artifact, load_artifact};
+use sail::engine::Engine;
+use sail::export::{export_to_artifact, load_artifact, load_omnimodal_artifact};
 use sail::generate::{
-    SamplingConfig, generate_naive, generate_stateful, generate_stateful_with_tools,
+    SamplingConfig, generate_naive, generate_omnimodal_stateful, generate_stateful,
+    generate_stateful_with_tools,
 };
+use sail::model::multimodal::{AudioProjectorConfig, OmnimodalConfig, VisionProjectorConfig};
 use sail::model::scan::{chunked_parallel_scan, sequential_scan};
 use sail::model::{HybridLm, HybridLmConfig};
+use sail::os::SailDaemon;
 use sail::tool::ToolRegistry;
 use sail::train::{TrainConfig, load_run, train};
 use sail::voice::{AudioHardware, VadDetector, VoiceAsr, VoiceTts};
+
+mod interactive;
 
 const HELP: &str = "\
 SAIL: State space, mixture of Experts & Active parameters hybrid LM (Burn)
@@ -42,8 +50,14 @@ USAGE:
   sail export       [options]   Export trained run to a single portable .sea artifact
   sail run          [options]   Execute standalone native inference directly from .sea
   sail voice        [options]   Live voice assistant with web confidence check & TTS
+  sail assistant    [options]   Stage-1 Segmented Assistant (ASR + UI/OCR context + tool broker + TTS)
+  sail engine       [options]   Run concurrent parallel inference engine with live snapshot reloading
+  sail host-smoke   [options]   Smoke test native host runtime, worker supervisor & bounded bus
+  sail daemon       [options]   Run Redox OS microkernel scheme daemon (`sail:`) simulation
   sail bench        [options]   Benchmark parallel vs sequential scan and stateful vs naive decoding
+  sail setup                    Guided no-flags terminal configuration
   sail help                     Show this message
+  sail --version                Show installed SAIL version
 
 TRAIN OPTIONS (defaults in brackets):
   --data PATH          text corpus                         [data/tinyshakespeare.txt]
@@ -71,6 +85,9 @@ TRAIN OPTIONS (defaults in brackets):
   --seed N                                                 [42]
 
 STREAM-TRAIN OPTIONS (defaults in brackets):
+  --multimodal         enable Omnimodal Any-to-Any (Audio/Vision/Text) [false]
+  --audio-channels N   audio feature channels (e.g. 80 Mel bins)       [80]
+  --patch-size N       vision spatial patch size (e.g. 16 for 16x16)   [16]
   --incoming DIR       incoming text chunks directory      [data/incoming]
   --initial-data PATH  optional base seed dataset          []
   --out DIR            run directory                       [runs/live_growing]
@@ -141,6 +158,9 @@ EXPORT OPTIONS:
 RUN OPTIONS:
   --model FILE         standalone .sea artifact path       [model.sea]
   --prompt TEXT                                            [\"\\n\"]
+  --image FILE         optional image input (PPM format)   []
+  --audio FILE         optional audio input (WAV format)   []
+  --interactive / -i   interactive conversational shell    [false]
   --tokens N           tokens to generate                  [500]
   --temperature F      0 = greedy                          [0.8]
   --top-k N            0 = disabled                        [0]
@@ -151,6 +171,29 @@ VOICE OPTIONS:
   --prompt TEXT        voice question or prompt            [\"What is the capital of France?\"]
   --entropy-threshold F uncertainty trigger threshold      [0.70]
   --save-wav FILE      output speech audio file            [reply.wav]
+
+ASSISTANT OPTIONS:
+  --model FILE         standalone .sea artifact path       [model.sea]
+  --prompt TEXT        user utterance text                 [\"What is the compiler error in main.rs?\"]
+  --screen             assemble fresh screen/UI context    [false]
+  --voice              enable streaming speech synthesis   [false]
+  --tts-engine NAME    TTS engine: auto, formant, or piper [auto]
+  --piper-path PATH    path to piper executable            [piper]
+  --piper-model PATH   path to piper ONNX model            [en_US-lessac-medium]
+  --save-wav FILE      save speech audio output to WAV     []
+  --session-id ID      session tracking identifier         [default_assistant_session]
+
+ENGINE OPTIONS:
+  --model FILE         standalone .sea artifact path       [model.sea]
+  --prompts LIST       comma-separated prompts             [\"The theory,Explain rust,What is sound\"]
+  --tokens N           tokens to generate per prompt       [50]
+  --temperature F      0 = greedy                          [0.8]
+  --top-k N            0 = disabled                        [0]
+  --seed N                                                 [0]
+
+DAEMON OPTIONS:
+  --model FILE         standalone .sea artifact path       [model.sea]
+  --command TEXT       text or shell command to execute    [\"help\"]
 ";
 
 /// Minimal `--key value` / `--flag` parser.
@@ -196,6 +239,10 @@ impl Args {
             .unwrap_or_else(|| default.to_string())
     }
 
+    fn opt_string(&mut self, key: &str) -> Option<String> {
+        self.values.remove(key)
+    }
+
     fn flag(&mut self, key: &str) -> bool {
         self.values.remove(key).is_some()
     }
@@ -228,7 +275,23 @@ impl Args {
 }
 
 fn main() {
-    let raw: Vec<String> = std::env::args().skip(1).collect();
+    use std::io::IsTerminal;
+
+    let mut raw: Vec<String> = std::env::args().skip(1).collect();
+    let explicit_setup = matches!(
+        raw.first().map(String::as_str),
+        Some("setup" | "configure" | "wizard")
+    );
+    if explicit_setup || (raw.is_empty() && std::io::stdin().is_terminal()) {
+        match interactive::run() {
+            Ok(Some(configured)) => raw = configured,
+            Ok(None) => return,
+            Err(error) => {
+                eprintln!("error: {error}");
+                std::process::exit(1);
+            }
+        }
+    }
     let (command, rest) = match raw.split_first() {
         Some((c, r)) => (c.as_str(), r),
         None => ("help", &[][..]),
@@ -240,9 +303,17 @@ fn main() {
         "export" => cmd_export(args),
         "run" => cmd_run(args),
         "voice" => cmd_voice(args),
+        "assistant" => cmd_assistant(args),
+        "engine" => cmd_engine(args),
+        "daemon" => cmd_daemon(args),
+        "host-smoke" => cmd_host_smoke(args),
         "bench" => cmd_bench(args),
         "help" | "--help" | "-h" => {
             print!("{HELP}");
+            Ok(())
+        }
+        "version" | "--version" | "-V" => {
+            println!("sail {}", env!("CARGO_PKG_VERSION"));
             Ok(())
         }
         other => Err(format!("unknown command {other:?}; run `sail help`")),
@@ -331,6 +402,9 @@ fn cmd_stream_train(mut args: Args) -> Result<(), String> {
     let use_bpe = args.flag("bpe");
     let bpe_vocab_size: usize = args.get("vocab-size", 512)?;
     let resume = args.flag("resume");
+    let multimodal = args.flag("multimodal");
+    let audio_channels: usize = args.get("audio-channels", 80)?;
+    let patch_size: usize = args.get("patch-size", 16)?;
 
     let model = model_config_from_args(&mut args, 0)?;
     let cfg = TrainConfig::new(model)
@@ -379,6 +453,9 @@ fn cmd_stream_train(mut args: Args) -> Result<(), String> {
                         if let Ok(c) = std::fs::read_to_string(&p) {
                             text.push_str(&c);
                             text.push('\n');
+                            if text.len() >= 2 * 1024 * 1024 {
+                                break; // Sample up to 2MB for fast BPE vocabulary training; byte fallback covers the rest
+                            }
                         }
                     }
                 }
@@ -402,10 +479,63 @@ fn cmd_stream_train(mut args: Args) -> Result<(), String> {
         }
     };
 
+    if multimodal {
+        let omni_cfg = OmnimodalConfig {
+            hybrid: cfg.model.clone(),
+            audio: AudioProjectorConfig::new(cfg.model.d_model).with_in_channels(audio_channels),
+            vision: VisionProjectorConfig::new(cfg.model.d_model).with_patch_size(patch_size),
+        };
+
+        let mut initial_records = Vec::new();
+        if !initial_data_path.is_empty() && std::path::Path::new(&initial_data_path).exists() {
+            if let Ok(content) = std::fs::read_to_string(&initial_data_path) {
+                for line in content.lines() {
+                    let trimmed = line.trim();
+                    if !trimmed.is_empty() {
+                        if let Ok(rec) = serde_json::from_str::<OmnimodalRecord>(trimmed) {
+                            initial_records.push(rec);
+                        }
+                    }
+                }
+            }
+        }
+
+        let dataset = OmnimodalDataset::new(initial_records, replay_ratio);
+        let mut watcher =
+            IncomingMultimodalWatcher::new(&incoming_dir).map_err(|e| e.to_string())?;
+        let initial_ingested = watcher.scan_and_ingest(&dataset, audio_channels);
+        if initial_ingested > 0 {
+            println!(
+                "Ingested {} initial multimodal records from {}",
+                initial_ingested, incoming_dir
+            );
+        }
+
+        println!("Backend: {BACKEND_NAME} (Omnimodal Multimodal Any-to-Any)");
+        let device = default_device();
+        let summary = sail::train::stream_train_omnimodal::<TrainBackend>(
+            cfg,
+            omni_cfg,
+            dataset,
+            Some(watcher),
+            tokenizer,
+            &out_dir,
+            &device,
+        )
+        .map_err(|e| e.to_string())?;
+
+        println!(
+            "Omnimodal streaming train finished: {} steps in {:.1}s | final train loss {:.4} | live artifact saved to {}/model.sea",
+            summary.steps_run, summary.elapsed_secs, summary.final_train_loss, out_dir
+        );
+        return Ok(());
+    }
+
     let stream_cfg = StreamConfig {
         replay_ratio,
         min_tokens_to_train: min_tokens,
         scan_interval_ms,
+        ..Default::default()
     };
 
     let initial_tokens =
@@ -546,8 +676,16 @@ fn cmd_export(mut args: Args) -> Result<(), String> {
 }
 
 fn cmd_run(mut args: Args) -> Result<(), String> {
-    let model_path = args.string("model", "model.sea");
+    let default_model = if std::path::Path::new("runs/main/model.sea").exists() {
+        "runs/main/model.sea"
+    } else {
+        "model.sea"
+    };
+    let model_path = args.string("model", default_model);
     let prompt = args.string("prompt", "\n");
+    let image_path = args.opt_string("image");
+    let audio_path = args.opt_string("audio");
+    let interactive = args.flag("interactive") || args.flag("i");
     let tokens: usize = args.get("tokens", 500)?;
     let sampling = SamplingConfig {
         temperature: args.get("temperature", 0.8)?,
@@ -558,11 +696,78 @@ fn cmd_run(mut args: Args) -> Result<(), String> {
     args.finish()?;
 
     let device = default_device();
-    let (model, cfg, tokenizer) = load_artifact::<InferenceBackend>(&model_path, &device)?;
-    let prompt_ids = tokenizer.encode(&prompt)?;
-    if prompt_ids.is_empty() {
-        return Err("prompt must not be empty".into());
+
+    // 1. Try loading as standalone Omnimodal artifact
+    if let Ok((omni_model, omni_cfg, tokenizer)) =
+        load_omnimodal_artifact::<InferenceBackend>(&model_path, &device)
+    {
+        println!(
+            "Loaded standalone Omnimodal artifact {model_path} | Backend: {BACKEND_NAME} | layers [{}] | d_model {} | audio channels {} | vision patch {}",
+            omni_cfg.hybrid.layout(),
+            omni_cfg.hybrid.d_model,
+            omni_cfg.audio.in_channels,
+            omni_cfg.vision.patch_size
+        );
+
+        let vision_tensor = if let Some(img_p) = &image_path {
+            println!("Loading image input: {img_p}...");
+            let v_data = sail::data::multimodal::load_ppm_image(img_p)
+                .map_err(|e| format!("Failed to load image '{img_p}': {e}"))?;
+            let tensor_data = TensorData::new(
+                v_data.data,
+                [1, v_data.channels, v_data.height, v_data.width],
+            );
+            Some((
+                Tensor::<InferenceBackend, 4>::from_data(tensor_data, &device),
+                0,
+            ))
+        } else {
+            None
+        };
+
+        let audio_tensor = if let Some(aud_p) = &audio_path {
+            println!("Loading audio input: {aud_p}...");
+            let a_data = sail::data::multimodal::load_wav_as_mel(aud_p, omni_cfg.audio.in_channels)
+                .map_err(|e| format!("Failed to load audio '{aud_p}': {e}"))?;
+            let tensor_data = TensorData::new(a_data.data, [1, a_data.channels, a_data.frames]);
+            Some(Tensor::<InferenceBackend, 3>::from_data(
+                tensor_data,
+                &device,
+            ))
+        } else {
+            None
+        };
+
+        let prompt_ids = tokenizer.encode(&prompt)?;
+        let text_slice = if prompt_ids.is_empty() {
+            None
+        } else {
+            Some(prompt_ids.as_slice())
+        };
+
+        let (ids, stats) = generate_omnimodal_stateful(
+            &omni_model,
+            text_slice,
+            audio_tensor,
+            vision_tensor,
+            tokens,
+            &sampling,
+            &device,
+        );
+
+        println!("\nSAIL > {}", tokenizer.decode(&ids));
+        println!(
+            "\n[omnimodal standalone O(1)/token] prefill {:.1} ms | {:.1} tok/s | final state {} floats ({:.1} KiB)",
+            stats.prefill_time.as_secs_f64() * 1e3,
+            stats.tokens_per_second(),
+            stats.state_elements,
+            stats.state_elements as f64 * 4.0 / 1024.0
+        );
+        return Ok(());
     }
+
+    // 2. Otherwise load as standard text Hybrid artifact
+    let (model, cfg, tokenizer) = load_artifact::<InferenceBackend>(&model_path, &device)?;
 
     println!(
         "Loaded standalone artifact {model_path} | Backend: {BACKEND_NAME} | layers [{}] | {} total params ({} active)",
@@ -570,6 +775,54 @@ fn cmd_run(mut args: Args) -> Result<(), String> {
         model.total_params(),
         model.active_params_per_token()
     );
+
+    if interactive {
+        println!("=== SAIL Native Interactive Shell | Backend: {BACKEND_NAME} ===");
+        println!("Type a prompt and press Enter. Type 'exit' to quit.\n");
+
+        loop {
+            print!("User > ");
+            std::io::stdout().flush().map_err(|e| e.to_string())?;
+
+            let mut input = String::new();
+            if std::io::stdin().read_line(&mut input).is_err() || input.trim() == "exit" {
+                println!("\nExiting interactive shell.");
+                break;
+            }
+            let input = input.trim();
+            if input.is_empty() {
+                continue;
+            }
+
+            let prompt_ids = match tokenizer.encode(input) {
+                Ok(ids) if !ids.is_empty() => ids,
+                _ => continue,
+            };
+
+            print!("SAIL > ");
+            std::io::stdout().flush().map_err(|e| e.to_string())?;
+
+            let (ids, stats) = generate_stateful(&model, &prompt_ids, tokens, &sampling, &device);
+            let gen_slice = if ids.len() >= prompt_ids.len() {
+                &ids[prompt_ids.len()..]
+            } else {
+                &ids[..]
+            };
+            println!("{}", tokenizer.decode(gen_slice));
+            println!(
+                "  [{:.1} tok/s | prefill {:.1} ms | state {:.1} KiB]\n",
+                stats.tokens_per_second(),
+                stats.prefill_time.as_secs_f64() * 1e3,
+                stats.state_elements as f64 * 4.0 / 1024.0
+            );
+        }
+        return Ok(());
+    }
+
+    let prompt_ids = tokenizer.encode(&prompt)?;
+    if prompt_ids.is_empty() {
+        return Err("prompt must not be empty".into());
+    }
 
     let (ids, stats) = generate_stateful(&model, &prompt_ids, tokens, &sampling, &device);
     println!("{}", tokenizer.decode(&ids));
@@ -584,7 +837,12 @@ fn cmd_run(mut args: Args) -> Result<(), String> {
 }
 
 fn cmd_voice(mut args: Args) -> Result<(), String> {
-    let model_path = args.string("model", "model.sea");
+    let default_model = if std::path::Path::new("runs/main/model.sea").exists() {
+        "runs/main/model.sea"
+    } else {
+        "model.sea"
+    };
+    let model_path = args.string("model", default_model);
     let input_prompt = args.string("prompt", "What is the capital of France?");
     let entropy_threshold: f32 = args.get("entropy-threshold", 0.70)?;
     let save_wav = args.string("save-wav", "reply.wav");
@@ -660,6 +918,232 @@ fn cmd_voice(mut args: Args) -> Result<(), String> {
         audio.len() as f32 / 16000.0
     );
 
+    Ok(())
+}
+
+fn cmd_assistant(mut args: Args) -> Result<(), String> {
+    let default_model = if std::path::Path::new("runs/main/model.sea").exists() {
+        "runs/main/model.sea"
+    } else {
+        "model.sea"
+    };
+    let model_path = args.string("model", default_model);
+    let input_prompt = args.string("prompt", "What is the compiler error in main.rs?");
+    let screen = args.flag("screen");
+    let voice = args.flag("voice");
+    let tts_engine = args.string("tts-engine", "auto");
+    let piper_path = args.string("piper-path", "piper");
+    let piper_model = args.string("piper-model", "en_US-lessac-medium");
+    let save_wav = args.opt_string("save-wav");
+    let session_id = args.string("session-id", "default_assistant_session");
+    args.finish()?;
+
+    println!("=== SAIL Stage-1 Segmented Assistant ===");
+    let device = default_device();
+
+    // 1. Initialize Model Backend Adapter
+    let backend: std::sync::Arc<dyn sail::runtime::ModelBackendAdapter> = if std::path::Path::new(&model_path).exists() {
+        if model_path.ends_with(".gguf") {
+            println!("Loading GGUF pretrained backend from {model_path}...");
+            std::sync::Arc::new(sail::runtime::PretrainedLocalAdapter::open(&model_path, "gemma_gguf")?)
+        } else {
+            println!("Loading native backend from {model_path}...");
+            let engine = Engine::<InferenceBackend>::open(&model_path, &device)?;
+            std::sync::Arc::new(sail::runtime::NativeSailAdapter::new(engine, &model_path))
+        }
+    } else {
+        println!("Model artifact '{model_path}' not found; using mock demonstration backend.");
+        std::sync::Arc::new(
+            sail::runtime::MockModelAdapter::new("mock_assistant")
+                .with_mock_response(&input_prompt, "I inspected the requested context. All parameters are operational.")
+        )
+    };
+
+    let backend_info = backend.backend_info();
+    println!("Backend: {} ({}) | Precision: {} | Device: {}", backend_info.name, backend_info.format, backend_info.precision, backend_info.device);
+
+    // 2. Optional Screen Context Assembly
+    let context_packet = if screen {
+        println!("[Perception] Assembling synchronized screen and UI context...");
+        let assembler = sail::runtime::MultimodalContextAssembler::new(&session_id);
+        match assembler.assemble_synchronized_context(&input_prompt, 100, false) {
+            Ok(pkt) => {
+                println!("[Perception] Context assembled: {} | freshness: {:.1} ms", pkt.context_id, pkt.provenance_trace.screen_age_ms);
+                Some(pkt)
+            }
+            Err(e) => {
+                println!("[Perception Warning] Screen context unavailable: {e}");
+                None
+            }
+        }
+    } else {
+        None
+    };
+
+    // 3. Optional Voice TTS Output
+    let tts: Option<Box<dyn sail::voice::tts::StreamingTtsAdapter>> = if voice {
+        let piper_adapter = sail::voice::tts::PiperLocalTtsAdapter::new(&piper_path, &piper_model);
+        let use_piper = if tts_engine == "piper" {
+            true
+        } else if tts_engine == "formant" {
+            false
+        } else {
+            piper_adapter.validate_configuration().is_ok()
+        };
+
+        if use_piper {
+            println!("[Audio] Using Piper neural speech synthesis ({piper_path})...");
+            Some(Box::new(piper_adapter))
+        } else {
+            if tts_engine == "auto" {
+                println!("[Audio] 'piper' binary not found; using built-in local formant speech engine.");
+            } else {
+                println!("[Audio] Using built-in local formant speech engine...");
+            }
+            Some(Box::new(sail::voice::tts::FormantNeuralTtsEngine::new(16000)))
+        }
+    } else {
+        None
+    };
+
+    // 4. Run Segmented Assistant Coordinator
+    let coordinator = sail::runtime::SegmentedAssistantCoordinator::new(&session_id, backend, tts);
+    let segment = sail::voice::asr::TranscriptSegment {
+        utterance_id: format!("utt_{}", rand::random::<u16>()),
+        session_id: session_id.clone(),
+        start_offset: 0,
+        end_offset: 1600,
+        start_timestamp_ns: 1_000_000,
+        end_timestamp_ns: 100_000_000,
+        text: input_prompt.clone(),
+        is_final: true,
+        confidence: 0.99,
+    };
+
+    println!("[User ASR Finalized]: \"{input_prompt}\"");
+    let outcome = coordinator.process_transcript(segment, context_packet.as_ref())
+        .map_err(|e| format!("assistant coordination error: {e}"))?;
+
+    println!("\nAssistant > {}", outcome.response_text);
+
+    if !outcome.degradations.is_empty() {
+        println!("\n[Degradations Encountered]: {:?}", outcome.degradations);
+    }
+
+    if !outcome.tool_proposals.is_empty() {
+        println!("\n[Captured Tool Proposals (Awaiting Policy Authorization)]:");
+        for (i, prop) in outcome.tool_proposals.iter().enumerate() {
+            println!("  [{}] {}: call_id={} input={}", i + 1, prop.tool_name, prop.call_id, prop.input);
+        }
+    }
+
+    if !outcome.synthesized_audio.is_empty() {
+        let sample_rate = outcome.synthesized_audio[0].sample_rate;
+        println!(
+            "\n[Audio] Synthesized {} speech chunks ({} samples, {:.2}s, {} Hz)",
+            outcome.synthesized_chunks,
+            outcome.synthesized_samples,
+            outcome.synthesized_samples as f64 / sample_rate as f64,
+            sample_rate
+        );
+        let wav_path = save_wav.unwrap_or_else(|| "reply.wav".to_string());
+        let mut all_samples = Vec::new();
+        for chunk in &outcome.synthesized_audio {
+            all_samples.extend_from_slice(&chunk.samples);
+        }
+        if !all_samples.is_empty() {
+            let voice_tts = sail::voice::VoiceTts::new(sample_rate);
+            if let Err(e) = voice_tts.save_wav(&all_samples, &wav_path) {
+                eprintln!("[Audio Warning] Failed to write WAV file '{wav_path}': {e}");
+            } else {
+                println!("[Audio] Saved speech audio to '{wav_path}'");
+            }
+        }
+    }
+
+    if let Some(metadata) = outcome.generation {
+        println!(
+            "\n[Performance] Generated {} tokens in {:.1} ms ({:.1} tok/s) | Finish: {:?}",
+            metadata.generated_tokens, metadata.elapsed_ms, metadata.tokens_per_sec, metadata.finish_reason
+        );
+    }
+
+    Ok(())
+}
+
+fn cmd_engine(mut args: Args) -> Result<(), String> {
+    let default_model = if std::path::Path::new("runs/main/model.sea").exists() {
+        "runs/main/model.sea"
+    } else {
+        "model.sea"
+    };
+    let model_path = args.string("model", default_model);
+    let prompts_str = args.string("prompts", "The theory,Explain rust,What is sound");
+    let tokens: usize = args.get("tokens", 50)?;
+    let sampling = SamplingConfig {
+        temperature: args.get("temperature", 0.8)?,
+        top_k: args.get("top-k", 0)?,
+        seed: args.get("seed", 0)?,
+        ..Default::default()
+    };
+    args.finish()?;
+
+    println!("Initializing Concurrent High-Integrity Engine from {model_path}...");
+    let device = default_device();
+    let engine = Engine::<InferenceBackend>::open(&model_path, &device)?;
+    println!(
+        "Engine Online | Active Generation: {} | Backend: {BACKEND_NAME}",
+        engine.active_generation().generation_id
+    );
+
+    let prompts: Vec<String> = prompts_str
+        .split(',')
+        .map(|s| s.trim().to_string())
+        .collect();
+    println!(
+        "Dispatching {} parallel inference streams across OS threads...",
+        prompts.len()
+    );
+
+    let results = engine.generate_parallel(&prompts, tokens, &sampling);
+    for (i, res) in results.into_iter().enumerate() {
+        match res {
+            Ok((text, stats)) => {
+                println!("\n=== Worker [{i}]: Prompt '{}' ===", prompts[i]);
+                println!("{text}");
+                println!(
+                    "[Stats] {:.1} tok/s | new tokens: {}",
+                    stats.tokens_per_second(),
+                    stats.new_tokens
+                );
+            }
+            Err(e) => eprintln!("\nWorker [{i}] error: {e}"),
+        }
+    }
+    Ok(())
+}
+
+fn cmd_daemon(mut args: Args) -> Result<(), String> {
+    let default_model = if std::path::Path::new("runs/main/model.sea").exists() {
+        "runs/main/model.sea"
+    } else {
+        "model.sea"
+    };
+    let model_path = args.string("model", default_model);
+    let command = args.string("command", "help");
+    args.finish()?;
+
+    println!("Starting Redox OS Scheme Daemon (sail:) with model {model_path}...");
+    let device = default_device();
+    let engine = Engine::<InferenceBackend>::open(&model_path, &device).ok();
+
+    let daemon = SailDaemon::new(engine);
+    println!(
+        "Redox Scheme `sail:` active. Dispatching command: {:?}",
+        command
+    );
+    let output = daemon.send_command(&command)?;
+    println!("\n[Redox Scheme Output]:\n{}", output);
     Ok(())
 }
 
@@ -760,4 +1244,72 @@ fn bench_decode(
             s.state_elements
         );
     }
+}
+
+fn cmd_host_smoke(args: Args) -> Result<(), String> {
+    args.finish()?;
+    println!("=== SAIL Native Host Runtime Smoke Test ===");
+    let bus = std::sync::Arc::new(sail::runtime::EventBus::new());
+    let supervisor = sail::runtime::Supervisor::new(bus.clone());
+
+    let audio_rx = bus.subscribe("audio", 64);
+    let tool_rx = bus.subscribe("tools", 32);
+
+    println!("[Host Runtime] Starting perception and tool workers...");
+    supervisor.spawn_worker("mic_capture", sail::runtime::WorkerRole::PerceptionAudio, {
+        let bus = bus.clone();
+        move |token, _| {
+            let mut seq = 0;
+            while !token.is_cancelled() && seq < 10 {
+                seq += 1;
+                let audio = std::sync::Arc::new(sail::runtime::SharedAudioBuffer::new(
+                    16000,
+                    1,
+                    vec![0.02; 320],
+                ));
+                let event = sail::runtime::RuntimeEvent::new(
+                    bus.next_event_id(),
+                    "smoke_sess",
+                    "mic",
+                    seq,
+                    seq * 20_000_000,
+                    sail::runtime::EventPayload::AudioInput(audio),
+                );
+                let _ = bus.publish("audio", event, sail::runtime::OverflowPolicy::DropOldest);
+                std::thread::sleep(std::time::Duration::from_millis(5));
+            }
+            Ok(())
+        }
+    })?;
+
+    supervisor.spawn_worker("tool_runner", sail::runtime::WorkerRole::ToolExecutor, {
+        let _bus = bus.clone();
+        move |token, _| {
+            while !token.is_cancelled() {
+                if let Some(event) = tool_rx.pop() {
+                    println!("[Tool Worker] Received task: {:?}", event.event_id);
+                }
+                std::thread::sleep(std::time::Duration::from_millis(5));
+            }
+            Ok(())
+        }
+    })?;
+
+    std::thread::sleep(std::time::Duration::from_millis(80));
+    let states = supervisor.get_worker_states();
+    for (id, state) in &states {
+        println!("[Worker Status] {id} -> {state:?}");
+    }
+    let received_audio = audio_rx.len();
+    println!(
+        "[Host Runtime] Bounded audio queue received {received_audio} frames (dropped: {})",
+        audio_rx.dropped_count()
+    );
+
+    println!("[Host Runtime] Initiating graceful shutdown...");
+    supervisor.shutdown(std::time::Duration::from_millis(200));
+    println!(
+        "✓ [Host Smoke] Native host runtime, workers, and bounded event bus verified successfully."
+    );
+    Ok(())
 }

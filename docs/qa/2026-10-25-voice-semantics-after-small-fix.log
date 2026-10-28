@@ -1,0 +1,8 @@
+Compile: rustc --edition=2024 docs/qa/voice_semantics_probe.rs --extern sail=target/debug/deps/libsail-d0ef99ebc1b15d24.rlib -L dependency=target/debug/deps -o /tmp/sail_voice_semantics_after
+Run exit: 0
+900Hz sine, no spoken words: text="stop playback", confidence=0.925, final=true, timestamp span=0ns, sample span=19200
+same final utterance delivered twice: first accepted=true, duplicate accepted=false
+1200Hz sine, no spoken words: text="open terminal", confidence=0.980, final=true, timestamp span=0ns, sample span=19200
+same final utterance delivered twice: first accepted=true, duplicate accepted=false
+1800Hz sine, no spoken words: text="search weather", confidence=0.980, final=true, timestamp span=0ns, sample span=19200
+same final utterance delivered twice: first accepted=true, duplicate accepted=false

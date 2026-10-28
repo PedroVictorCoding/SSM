@@ -1,0 +1,1 @@
+step,lr,train_loss,val_loss,val_bpc,tokens_per_sec,elapsed_secs,total_tokens,hist_tokens,new_tokens

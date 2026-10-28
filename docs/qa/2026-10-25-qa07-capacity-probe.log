@@ -1,0 +1,6 @@
+Compile: rustc --edition=2024 docs/qa/idempotency_capacity_probe.rs --extern sail=target/debug/deps/libsail-d0ef99ebc1b15d24.rlib --extern serde_json=target/debug/deps/libserde_json-e85fe35c90d04270.rlib -L dependency=target/debug/deps -o /tmp/sail_idempotency_capacity_probe
+Run exit: 0
+duplicate during original in-flight operation after cache pressure: Success; counter effects=2
+original eventual result: Success
+v1 result: Some("output from v1")
+same key after registered tool version replacement: Success; cached=true; output=Some("output from v1")

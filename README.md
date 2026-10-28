@@ -8,6 +8,12 @@ A pure Rust implementation of Selective State Space Models (Mamba), Transformer 
 
 **No autonomous recursive self-improvement, ever. This rule is permanent and has no exceptions.** SAIL learns through continuous, context-dependent training on data from Hugging Face and other human-approved external sources, within a human-defined training pipeline. The model must never control its own code, architecture, training policy, permissions, or deployment. See [ALIGNMENT.md](ALIGNMENT.md) for the binding project boundaries.
 
+
+---
+
+Ideas:
+- [ ] Decentralized training, SEQ/ACK p2p infrastructure, where an user trains a segment, and then that segment is merged into the model, then everyone has access to a model train in a greater scale. (user downloads some serve established dataset -> user train segment -> user uploads trained segment -> server merges <- seamlessly)
+
 ---
 
 ## Key Architecture & Features
@@ -15,6 +21,7 @@ A pure Rust implementation of Selective State Space Models (Mamba), Transformer 
 ### 1. Constant-Memory $O(1)$ Stateful Inference
 - **`step(token, state)` API**: During autoregressive text generation, the recurrent hidden state $h_t$ is preserved across steps.
 - **Constant decode latency**: Per-token decode time is identical at $L=64$, $L=128$, and $L=256$ (~4.8 ms/token on CPU), avoiding the $O(L^2)$ quadratic cost of re-processing context.
+- **Memory Boundedness**: In pure Mamba SSM layers, memory is strictly $O(1)$ constant ($\text{d\_state} \times \text{d\_inner}$). When attention layers are enabled, memory remains strictly $O(1)$ bounded *if and only if* sliding window attention is configured (`--attn-window W > 0`); full causal attention (`--attn-window 0`) grows the KV cache linearly $O(L)$.
 - Verified bit-exact match against full-sequence parallel prefill (`outputs identical: true`).
 
 ### 2. Full Mamba Selective SSM Layer ([`mamba.rs`](src/model/mamba.rs))
@@ -37,7 +44,9 @@ A pure Rust implementation of Selective State Space Models (Mamba), Transformer 
 - **Auxiliary Load-Balancing Loss**:
   $$L_{\text{aux}} = E \sum_{e=1}^E f_e \cdot P_e$$
   Prevents expert collapse during training.
-- **Parameter Accounting**: Automatic tracking of `total_params()` vs `active_params_per_token()`.
+- **Parameter Capacity vs Compute**:
+  - `active_params_per_token()` accurately tracks the standard theoretical routing parameter footprint (router + $K$ experts).
+  - Batched training evaluates all experts in parallel with sparse gating masks for tensor vectorization; physical on-demand memory streaming is implemented in the experimental [`mmap_moe.rs`](src/model/mmap_moe.rs) path.
 
 ### 5. Associative Parallel Scan ([`scan.rs`](src/model/scan.rs))
 - Replaces sequential loops with a chunked parallel prefix scan using the associative operator:
@@ -114,6 +123,46 @@ Notice that stateful decoding maintains constant ~4.8 ms latency per token regar
 ---
 
 ## Usage
+
+### Install the `sail` system command
+
+SAIL is a normal Rust binary crate named `sail`. After cloning the repository,
+install it once and use `sail` from any directory.
+
+Linux, WSL, or macOS:
+
+```bash
+./scripts/install.sh
+```
+
+Windows PowerShell:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\scripts\install.ps1
+```
+
+Both installers ask which compute backend to build: portable CPU, WGPU for common
+GPUs (including AMD), or CUDA for NVIDIA. They use `cargo install --path` and place
+the executable in Cargo's normal binary directory (`~/.cargo/bin` on Linux/macOS,
+`%USERPROFILE%\.cargo\bin` on Windows). Rust installers normally add that directory
+to `PATH`; otherwise add it once and open a new terminal.
+
+The equivalent noninteractive installation is:
+
+```bash
+cargo install --path . --locked --force --no-default-features --features wgpu
+```
+
+After installation, run `sail` with no arguments. It opens a terminal wizard for
+training, continual stream training, inference, export, and generation. The wizard
+validates entries, shows the equivalent reproducible command, and asks before it
+starts anything. `sail setup` or `sail configure` opens the same wizard explicitly.
+Existing command-line flags remain available for scripts and repeatable benchmarks.
+
+If input is redirected or the command runs unattended, bare `sail` prints help
+instead of waiting for answers. The wizard never turns model output into training
+data and cannot authorize model-controlled training.
 
 Training performance experiments and reproducible CPU results are documented in
 [docs/PERFORMANCE.md](docs/PERFORMANCE.md). The opt-in `--work-efficient-scan`
@@ -215,10 +264,12 @@ cargo run --release -- export --run runs/moe_hybrid --out model.sea
 cargo run --release -- run --model model.sea --prompt "ROMEO:" --tokens 300
 ```
 
-### 8. Real-Time Voice Assistant & Calibrated Anti-Hallucination
+### 8. Prototype Voice Assistant & Tool-Calling Demonstration (`sail voice`)
+Demonstration of hardware audio streaming (`cpal`), energy-based Voice Activity Detection, and local keyword lookup with normalized output entropy checks:
 ```bash
 cargo run --release -- voice --model model.sea --prompt "What is the capital of France?" --entropy-threshold 0.70
 ```
+*Note*: This demonstrates turn-taking and local knowledge retrieval; it is an offline prototype, not a replacement for high-parameter neural TTS or live Internet crawling.
 
 ### 9. Live training observatory
 
@@ -227,6 +278,79 @@ Start the local API and GUI (Python 3.10+, no additional packages):
 ```bash
 python3 dashboard/server.py
 ```
+
+### 10. Omnimodal Any-to-Any Continual Training (`sail stream-train --multimodal`)
+
+Train hybrid SSM + Attention + MoE models simultaneously on text, audio (WAV / Mel filterbank), and vision (images / video patches) on any OS (Linux, macOS, Windows):
+
+```bash
+# Launch continual multimodal streaming trainer
+cargo run --release -- stream-train \
+  --multimodal \
+  --incoming data/incoming \
+  --out runs/omnimodal \
+  --audio-channels 80 \
+  --patch-size 16 \
+  --steps 2000 \
+  --batch-size 8 \
+  --save-every 100 \
+  --keep-checkpoints 3 \
+  --resume
+```
+
+As audio, images, and text chunks drop into `data/incoming/` (e.g. from `hf_streamer.py` or user uploads), the trainer automatically:
+1. Ingests and extracts acoustic filterbanks and visual patch projections with explicit schema validation.
+2. Interleaves text, audio, and vision embeddings into a shared sequence.
+3. Performs experience replay sampling to prevent catastrophic forgetting.
+4. Atomically exports live, standalone `.sea` artifacts (`runs/omnimodal/model.sea`) for concurrent inference.
+5. Emits durable ingestion receipts (`ingestion.json`) ensuring feeder cleanup occurs only after replay commitment.
+
+*Note on Multimodal Capabilities*: The Omnimodal pipeline establishes the tensor plumbing (strided causal 1D audio conv, 2D image patch projection, interleaved recurrence). Small-scale training proves functional execution; high-level speech comprehension or vision-language reasoning requires large-scale pretraining.
+
+### 11. Multimodal Streaming from Hugging Face (`scripts/hf_streamer.py`)
+
+Continuously fetch and stream human-configured public datasets into `data/incoming/` with transactional SQLite deduplication and split-contamination guards:
+
+```bash
+# Stream text datasets (code, science, conversational):
+python3 scripts/hf_streamer.py --incoming data/incoming --topic code
+
+# Stream audio speech recognition datasets (e.g. speech_commands / librispeech):
+python3 scripts/hf_streamer.py --incoming data/incoming --modality audio
+
+# Stream vision datasets (e.g. cifar10 / coco_captions):
+python3 scripts/hf_streamer.py --incoming data/incoming --modality vision
+
+# Stream arbitrary custom multimodal datasets with bounded prefetch and directory locking:
+python3 scripts/hf_streamer.py --incoming data/incoming \
+  --dataset HuggingFaceM4/DocVQA --modality multimodal \
+  --target-field answers --prompt-field question
+```
+
+### 12. Concurrent Inference Engine (`sail engine`)
+
+Runs snapshot-isolated multi-threaded parallel inference:
+- Uses `RwLock`-synchronized generational pointer swapping with immutable request snapshots (`Arc<ModelGeneration>`).
+- Automatically reloads `.sea` artifacts when updated by background training.
+
+```bash
+cargo run --release -- engine --model model.sea --prompts "The theory,Explain rust,What is sound" --tokens 50
+```
+
+### 13. Redox OS Scheme Protocol Simulator (`sail daemon`)
+
+Simulates userspace Redox microkernel packet handling (`RedoxPacket` for `SYS_OPEN`, `SYS_READ`, `SYS_WRITE`, `SYS_CLOSE`) and exposes the `sail:command`, `sail:voice`, and `sail:vision` IPC scheme channels.
+
+```bash
+cargo run --release -- daemon --model model.sea --command "help"
+```
+
+### 14. Framework Capabilities & Benchmarks
+
+For the complete capability status matrix and empirical benchmark data:
+- [Capability Matrix](docs/CAPABILITIES.md): Detailed verification status distinguishing implemented, tested, benchmarked, and planned subsystems.
+- [Benchmark Guide](docs/BENCHMARKS.md): Direct timing, prefill, decode, memory, PyTorch comparison, and modality-ablation benchmarks across CPU and GPU hardware.
+- [Overlap Audit](scripts/audit_overlap.py): Automated tool for detecting and rejecting train/validation contamination.
 
 Open **http://127.0.0.1:8787**. The dashboard discovers runs in `runs/` and refreshes
 every two seconds. Use `--runs /path/to/runs --port 9000` to choose another directory

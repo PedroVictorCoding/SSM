@@ -10,13 +10,18 @@
 //! - [`backend`]: compile-time backend selection (ndarray / wgpu / cuda).
 
 pub mod backend;
+pub mod capability;
 pub mod data;
+pub mod engine;
 pub mod export;
 pub mod generate;
 pub mod kernel;
 pub mod model;
 pub mod optim;
+pub mod os;
 mod profile;
+pub mod runtime;
+pub mod screen;
 mod storage;
 pub mod telemetry;
 pub mod tool;

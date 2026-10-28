@@ -1,0 +1,11 @@
+Evidence scope: last successfully compiled library, not the concurrently edited QA-07 source.
+Library SHA256: e902ec7885c9eb61fb11abb568d9a81a3dfb60799af73aecd35ed1d5e528f099
+Compile: rustc --edition=2024 docs/qa/path_policy_integration_probe.rs --extern sail=target/debug/deps/libsail-d0ef99ebc1b15d24.rlib --extern serde_json=target/debug/deps/libserde_json-e85fe35c90d04270.rlib -L dependency=target/debug/deps -o /tmp/sail_path_policy_integration_last_build
+Run exit: 0
+authorized unrelated Rust project source edit: Ok(())
+narrow-constructor symlink search status: Success; outside-root metadata exposed: true
+broader-constructor symlink search status: Success; outside host-root metadata exposed: true
+protected framework root rename check: Err(ProtectedPathViolation("/tmp/sail-path-integration-review-34/protected-framework"))
+protected framework parent deletion policy check (not executed): Ok(())
+explicit protected framework reclassified as user project: Ok(())
+protected source after fixture ancestor move: Ok(())

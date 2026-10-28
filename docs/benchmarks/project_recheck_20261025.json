@@ -1,0 +1,85 @@
+{
+  "date": "2026-10-25",
+  "head": "4075a082992608fa3f5d6edab0c6d27edeed37bc",
+  "scope": "Current working tree; review only, no production fixes or model retraining performed.",
+  "rust": {
+    "command": "cargo test --release --offline --no-default-features --features ndarray",
+    "passed": 52,
+    "failed": 0,
+    "log": "   Compiling sail v0.1.0 (/home/pedro/Dev/SSM)\n    Finished `release` profile [optimized] target(s) in 1m 12s\n     Running unittests src/lib.rs (target/release/deps/sail-24eb76be35d647fb)\n\nrunning 4 tests\ntest optim::tests::device_clipping_matches_burn_for_zero_small_and_large_norms ... ok\ntest train::numerical_tests::health_checks_reject_nan_weights_and_infinite_gradients ... ok\ntest train::numerical_tests::numerical_failure_keeps_checkpoint_files_and_reports_failed_state ... ok\ntest storage::tests::interrupted_publication_preserves_previous_file_and_cleans_temp ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n     Running unittests src/main.rs (target/release/deps/sail-2833ca6158dc49d3)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/test_bpe.rs (target/release/deps/test_bpe-9235e0fce1976bf8)\n\nrunning 3 tests\ntest test_bpe_tokenizer_byte_fallback ... ok\ntest test_bpe_save_and_load ... ok\ntest test_bpe_training_and_compression ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/test_bpe_train.rs (target/release/deps/test_bpe_train-305b50f0dc336360)\n\nrunning 1 test\ntest test_bpe_training_and_generation ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.29s\n\n     Running tests/test_checkpoint_reliability.rs (target/release/deps/test_checkpoint_reliability-abf7230e6255b937)\n\nrunning 3 tests\ntest regular_resume_matches_uninterrupted_with_optimizer_and_sampler_state ... ok\ntest streaming_resume_restores_replay_rng_validation_and_visualization ... ok\ntest live_inference_reads_complete_artifacts_while_training_publishes ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.73s\n\n     Running tests/test_concurrent_engine.rs (target/release/deps/test_concurrent_engine-4a7faa0ecf151912)\n\nrunning 1 test\ntest test_concurrent_parallel_engine_and_hot_reload ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s\n\n     Running tests/test_continual_learning.rs (target/release/deps/test_continual_learning-b689ff3a8548b954)\n\nrunning 1 test\ntest test_continual_stream_training_and_live_sea_artifact ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.35s\n\n     Running tests/test_export.rs (target/release/deps/test_export-4a1178312e312dca)\n\nrunning 1 test\ntest test_export_and_native_standalone_runner ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s\n\n     Running tests/test_gpu_reference.rs (target/release/deps/test_gpu_reference-e61fe4e9c52d71c8)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/test_gpu_training.rs (target/release/deps/test_gpu_training-fd1526093fc94d17)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/test_kernel_scan.rs (target/release/deps/test_kernel_scan-c5b6929bedd7225c)\n\nrunning 1 test\ntest test_associative_scan_kernel_correctness ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/test_mmap_moe.rs (target/release/deps/test_mmap_moe-cb18a327e76674b7)\n\nrunning 1 test\ntest test_mmap_expert_streaming_equivalence ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n     Running tests/test_model.rs (target/release/deps/test_model-1522700b42938a67)\n\nrunning 4 tests\ntest test_scan_equivalence ... ok\ntest test_moe_active_parameters_and_aux_loss ... ok\ntest test_mamba_step_equals_forward ... ok\ntest test_hybrid_stateful_decoding_equals_naive ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s\n\n     Running tests/test_multimodal_ingest.rs (target/release/deps/test_multimodal_ingest-5f55531156d48bd8)\n\nrunning 3 tests\ntest test_ppm_image_loading ... ok\ntest test_omnimodal_dataset_sampling_and_watcher_ingest ... ok\ntest test_mel_spectrogram_extraction_and_wav_loading ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s\n\n     Running tests/test_multimodal_projectors.rs (target/release/deps/test_multimodal_projectors-1a822269d777436b)\n\nrunning 3 tests\ntest test_audio_projector_causal_striding ... ok\ntest test_vision_projector_patch_embeddings ... ok\ntest test_omnimodal_hybrid_interleaved_forward_and_recurrent_step ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n     Running tests/test_omnimodal_stream_train.rs (target/release/deps/test_omnimodal_stream_train-fa3e6b997e48aa1a)\n\nrunning 1 test\ntest test_omnimodal_stream_train_end_to_end_and_resume ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s\n\n     Running tests/test_omnimodal_training.rs (target/release/deps/test_omnimodal_training-29113cf4098f2c83)\n\nrunning 1 test\ntest test_train_and_reproduce_omnimodal_off_the_hook ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s\n\n     Running tests/test_redox_os_integration.rs (target/release/deps/test_redox_os_integration-206b37e28c1c7796)\n\nrunning 2 tests\ntest test_redox_scheme_packet_lifecycle ... ok\ntest test_redox_daemon_with_live_engine_inference ... ok\n\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s\n\n     Running tests/test_resume.rs (target/release/deps/test_resume-17d2b09b8f79c735)\n\nrunning 1 test\ntest test_training_checkpoint_and_resume ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s\n\n     Running tests/test_scan_tree.rs (target/release/deps/test_scan_tree-ca33f4cf182801f8)\n\nrunning 3 tests\ntest tree_handles_zero_and_identity_transitions ... ok\ntest tree_mamba_matches_recurrent_decode_and_old_configs_load ... ok\ntest parallel_scans_match_reference_outputs_and_gradients ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n     Running tests/test_ssm.rs (target/release/deps/test_ssm-a9d20ef3ee2cc785)\n\nrunning 5 tests\ntest test_parallel_scan_matches_sequential ... ok\ntest test_moe_hybrid_active_params_reporting ... ok\ntest test_moe_dynamic_active_parameters ... ok\ntest test_mamba_recurrent_step_matches_sequence ... ok\ntest test_hybrid_jamba_step_matches_prefill ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n     Running tests/test_stream_data.rs (target/release/deps/test_stream_data-25f7120592454d05)\n\nrunning 4 tests\ntest test_stream_dataset_append_and_distribution ... ok\ntest test_stream_dataset_experience_replay_batch_sampling ... ok\ntest test_incoming_directory_watcher_ingestion ... ok\ntest test_ingestion_receipt_only_acknowledges_successful_tokenization ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/test_telemetry.rs (target/release/deps/test_telemetry-0a40fa4e8fbad043)\n\nrunning 1 test\ntest neural_snapshot_covers_every_parameter_and_preserves_gradients ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n     Running tests/test_tools_and_entropy.rs (target/release/deps/test_tools_and_entropy-938391dfd55ff7ef)\n\nrunning 4 tests\ntest test_compute_normalized_entropy_extremes ... ok\ntest test_tool_registry_web_search ... ok\ntest test_stateful_generation_with_tool_calling_and_entropy ... ok\ntest test_entropy_triggered_anti_hallucination_verification ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.73s\n\n     Running tests/test_voice.rs (target/release/deps/test_voice-ab57462d27bb0490)\n\nrunning 4 tests\ntest test_asr_and_hardware_presence ... ok\ntest test_audio_ring_buffer_fifo ... ok\ntest test_vad_speech_activity_and_turn_detection ... ok\ntest test_voice_tts_synthesis_and_wav_generation ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Doc-tests sail\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+  },
+  "python": {
+    "command": "HF_HOME=/tmp/sail-hf-test-cache SAIL_TEST_BINARY=/home/pedro/Dev/SSM/target/release/sail /tmp/sail-hf-venv/bin/python -m unittest discover -s scripts -p test_hf_streamer.py -v",
+    "passed": 18,
+    "log": "test_budget_stops_without_further_network_reads (test_hf_streamer.FeederTests.test_budget_stops_without_further_network_reads) ... ok\ntest_bulk_commits_and_restart_continue_without_duplicate_rows (test_hf_streamer.FeederTests.test_bulk_commits_and_restart_continue_without_duplicate_rows) ... ok\ntest_checkpointed_cleanup_allows_prefetch_to_resume (test_hf_streamer.FeederTests.test_checkpointed_cleanup_allows_prefetch_to_resume) ... ok\ntest_consumption_requires_committed_matching_receipt (test_hf_streamer.FeederTests.test_consumption_requires_committed_matching_receipt) ... ok\ntest_each_source_has_independent_progress_and_revision (test_hf_streamer.FeederTests.test_each_source_has_independent_progress_and_revision) ... ok\ntest_hub_revision_is_pinned_and_cursor_loaded_on_reopen (test_hf_streamer.FeederTests.test_hub_revision_is_pinned_and_cursor_loaded_on_reopen) ... ok\ntest_interruption_after_cursor_commit_recovers_publication (test_hf_streamer.FeederTests.test_interruption_after_cursor_commit_recovers_publication) ... ok\ntest_interruption_after_publication_does_not_duplicate_file (test_hf_streamer.FeederTests.test_interruption_after_publication_does_not_duplicate_file) ... ok\ntest_missing_field_fails_without_advancing_committed_cursor (test_hf_streamer.FeederTests.test_missing_field_fails_without_advancing_committed_cursor) ... ok\ntest_multimodal_audio_and_vision_streaming (test_hf_streamer.FeederTests.test_multimodal_audio_and_vision_streaming) ... ok\ntest_multimodal_trainer_roundtrip_with_compiled_binary (test_hf_streamer.FeederTests.test_multimodal_trainer_roundtrip_with_compiled_binary) ... ok\ntest_permanent_failure_writes_no_fallback (test_hf_streamer.FeederTests.test_permanent_failure_writes_no_fallback) ... ok\ntest_rate_limit_honors_seconds_and_http_date (test_hf_streamer.FeederTests.test_rate_limit_honors_seconds_and_http_date) ... ok\ntest_real_parquet_shard_iterator_resume (test_hf_streamer.FeederTests.test_real_parquet_shard_iterator_resume) ... ok\ntest_retry_budget_is_finite_and_progress_is_preserved (test_hf_streamer.FeederTests.test_retry_budget_is_finite_and_progress_is_preserved) ... dataset=test/source network failure OSError HTTP=None; retry 1/2 in 0.0s\ndataset=test/source network failure OSError HTTP=None; retry 2/2 in 0.0s\nok\ntest_retry_discards_partial_batch_and_reopens_committed_cursor (test_hf_streamer.FeederTests.test_retry_discards_partial_batch_and_reopens_committed_cursor) ... dataset=test/source network failure HTTPError HTTP=429; retry 1/8 in 0.0s\nok\ntest_single_producer_lock_and_resume_version_guard (test_hf_streamer.FeederTests.test_single_producer_lock_and_resume_version_guard) ... ok\ntest_trainer_checkpoint_allows_cleanup_and_resume_without_original_files (test_hf_streamer.FeederTests.test_trainer_checkpoint_allows_cleanup_and_resume_without_original_files) ... ok\n\n----------------------------------------------------------------------\nRan 18 tests in 4.670s\n\nOK\n"
+  },
+  "probes": {
+    "restart_deduplication": {
+      "input": "two identical text rows; first invocation max_chunks=1 and batch_rows=1, followed by an identical restart against the same spool",
+      "published_files": 2,
+      "unique_contents": 1
+    },
+    "multimodal_example_deduplication": {
+      "input": "two RGB 32x32 arrays, all 0.2 versus all 0.8, both label=1, no prompt; collect modality=vision with ample byte budget",
+      "input_records": 2,
+      "accepted_records": 1
+    },
+    "omnimodal_checkpoint_cleanup": {
+      "input": "fresh single-record .omni.jsonl spool; one-step native CPU stream-train --multimodal; then Spool.reclaim against that run",
+      "trainer_exit": 0,
+      "generation_files": [
+        "checkpoint.json",
+        "model.mpk",
+        "omni_stream.json",
+        "omni_val.json",
+        "omnimodal_config.json",
+        "optimizer.mpk",
+        "processed_files.json"
+      ],
+      "bytes_reclaimed": 0,
+      "input_chunks_retained": 1
+    },
+    "existing_checkpoint_overlap": {
+      "run": "runs/hf_gpu_20261025_075531",
+      "step": 4000,
+      "validation_windows": 7,
+      "matching_training_input_and_target_windows": 7
+    }
+  },
+  "source_sha256": {
+    "scripts/hf_streamer.py": "390a9edc48c88bb5adba88a837f0935d57a9ba67081160c300128a2f571df146",
+    "README.md": "7b5e40c0147fa14d3c06def873d457da7b320f7f280d59b85b5aa3316a42abb6",
+    "PRODUCT_BACKLOG.md": "2df1b9ee4c1061268bee63544b45d884cac29affe7a72ee4efcade148d8b3587",
+    "src/data.rs": "ac943f04b0c443caa4cc78fe376207866fc4a1031485fcb81a687bbc752c3752",
+    "src/telemetry.rs": "2735564a031ffbea409aafa8c3b26912a40961432a724cbd4a71053a7dff96ba",
+    "src/train.rs": "a904020e3d667bdc5415ffaff4189c43023089a2c7fef937955ad39fc59dd28b",
+    "src/export.rs": "d09ce57bea1e907db328c4812c73187a9282897555802f2f5938b8cb35ce39ab",
+    "src/profile.rs": "a84f48d105a4ee8bc3b524095a0a08a669616048caf8ba5ddba70e3d597f2dac",
+    "src/generate.rs": "8a475cbc878b60ffb7d48d7f1d8ab561dc7d43589c45866524bab3a61a8f6c27",
+    "src/lib.rs": "77bff29de1df78fb5b9834fcc4c733a2bb50ee503e02d942206609a305ac789a",
+    "src/tool.rs": "168a521b02c5a818df09dbb3c0b6ffbb6491fad61a6ee7b9e3aba186385f698b",
+    "src/backend.rs": "7505e19f663603cafb83ee735980863fc45e57f1acf19d50794faefa64738310",
+    "src/voice.rs": "e5d8c0f8d070931024bc3eea946bc924685b7c3e63992f54191eda4751ed5188",
+    "src/optim.rs": "d14b6cd3ed21efc1a6bb750a75a9bb8d16d765ee40239b23581f65cd1999204f",
+    "src/main.rs": "2750736005ef3b2a7b8eda33b920d3b0f9ce8302cb4e8b1292079528d0373ee4",
+    "src/storage.rs": "d62a63b33efa91207dca4777b74d82b3ab29c8312def3452687570c45f8c6a03",
+    "src/kernel/scan.rs": "e0979847cf6d6af815c8be2e25059e05c6e66d4ec6e3778fb00fd6bdc3fbc7ce",
+    "src/kernel/mod.rs": "69b455eb863ced167055ae2efee64fdb667bf13407fcaa048e6bf075a73d1e44",
+    "src/os/redox.rs": "f2e341bc99008cd028d95e1226ea4b99cc9e8fcf0e9994ef07ae9c4604402dd5",
+    "src/os/mod.rs": "4c0e72c987381e9d79eefae9529e739e1c7daf92ef34be8a8de01b29737db8a5",
+    "src/data/multimodal.rs": "a1d50e0d16885975e8e8f625857f41656ffca4da9effdb597ec35dca00e1f13a",
+    "src/data/bpe.rs": "b29c76826cdcc9d6849fd99a7f586f36262e601cb07a87918917d6f04a8b41f8",
+    "src/data/stream.rs": "dce347ba1dedddf74e0f1c94439d69687e82c8311efa3a254686a3b1fe136f43",
+    "src/engine/mod.rs": "107fe45ad7e91a64cb796bbd7b1f608eb54db5c7f2e109070160d73517501ee1",
+    "src/model/moe.rs": "44ca0897c87add67dd0884e054d8dc48fce27e1d54cfab3a442895f20703d6ba",
+    "src/model/multimodal.rs": "9a1512588742f3ccaccf0c23da3dfa0f8546005e5809fdf4caad560a02a22c17",
+    "src/model/scan.rs": "5deda2eb74f48d209bbab4b9429e301ea3204a0488060655f558a07626b0de22",
+    "src/model/mod.rs": "a428131283079b3ba9b328408702c9da32eb15b8b0d88c87f394ae74640587df",
+    "src/model/hybrid.rs": "e0c3fcf6c24535e7414995c91eaa41d29edb6e9574954b686f38d8f3713d4a10",
+    "src/model/mmap_moe.rs": "fb362eb80a41c796dfff5d096e69821f975a0b91570dd8310fa032f33e63c783",
+    "src/model/mamba.rs": "4f444cd1763d69c8ce05c0794d000add258d54ad1543832dbe272c6afff3dad8",
+    "src/model/mlp.rs": "3a7fd198b79d1527c04521e52029f0a54e54c513cadaa789169b8178e31b9ebf",
+    "src/model/norm.rs": "c5848086c4911c15a660674013ef1af4f2b7b9230232b9a48a26a3a619d297e9",
+    "src/model/attention.rs": "8728886d5c8183169994b984156101d8ab56c1dbcec1d8a3997a7c3187fa43f9"
+  }
+}

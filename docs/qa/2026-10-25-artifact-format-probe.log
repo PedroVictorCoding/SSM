@@ -1,0 +1,6 @@
+Compile: rustc --edition=2024 /tmp/sail_artifact_format_probe.rs --extern sail=target/debug/deps/libsail-d0ef99ebc1b15d24.rlib -L dependency=target/debug/deps -o /tmp/sail_artifact_format_probe
+Run exit code: 0
+native-header.sea: Err("Unsupported or unrecognized model format in '/tmp/sail-format-review-35/native-header.sea' (magic [83, 69, 65, 80])")
+zip.bin: Ok(SailSea)
+truncated.gguf: Ok(GgufV2V3)
+existing exported artifact: Err("Unsupported or unrecognized model format in 'runs/hf_gpu_20261025_075531/model.sea' (magic [83, 69, 65, 80])")

@@ -43,3 +43,6 @@ __pycache__/
 /data/hf_bulk_*/
 /.venv-hf/
 **/.hf_streamer/
+
+# Local pretrained model exceeds GitHub file-size limits.
+/models/gemma4-v2-Q4_K_M.gguf

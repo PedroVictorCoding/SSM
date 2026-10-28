@@ -1,0 +1,29 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.24s
+     Running tests/test_alignment_boundaries.rs (target/debug/deps/test_alignment_boundaries-ae37744b95de1fd1)
+
+running 7 tests
+test test_alignment_document_preserved_verbatim ... ok
+test test_model_cannot_register_new_tools ... ok
+test test_model_originated_privileged_actions_are_strictly_blocked ... ok
+test test_prompt_injection_fixtures_cannot_escalate_privileges ... ok
+test test_protected_paths_immutable_to_writes ... FAILED
+test test_tool_dispatch_policy_enforcement ... ok
+test test_runtime_outputs_and_captures_excluded_from_training_queue ... ok
+
+failures:
+
+---- test_protected_paths_immutable_to_writes stdout ----
+
+thread 'test_protected_paths_immutable_to_writes' (18) panicked at tests/test_alignment_boundaries.rs:161:57:
+assertion `left == right` failed
+  left: "/home/pedro/Dev/SSM/src/main.rs"
+ right: "src/main.rs"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    test_protected_paths_immutable_to_writes
+
+test result: FAILED. 6 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--test test_alignment_boundaries`

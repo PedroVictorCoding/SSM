@@ -1,0 +1,21 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.26s
+     Running tests/test_mmap_moe.rs (target/debug/deps/test_mmap_moe-60eda6a927c161da)
+
+running 1 test
+test test_mmap_expert_streaming_equivalence ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/test_moe_sparse.rs (target/debug/deps/test_moe_sparse-cb92bfdae6ebb61a)
+
+running 2 tests
+test test_sparse_expert_dispatch_matches_dense_reference_and_gradients ... ok
+
+[MoE Dispatch Benchmark] 16 Experts / Top-1 | Batch 16 | Iterations: 50
+  Dense Forward:  449.460358ms (8.989 ms/iter)
+  Sparse Forward: 365.043043ms (7.301 ms/iter)
+  Ratio: 1.23x
+test test_sparse_vs_dense_dispatch_timing_and_overhead ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.98s
+

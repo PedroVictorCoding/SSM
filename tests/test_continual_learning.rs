@@ -29,6 +29,7 @@ Continual streaming models ingest knowledge progressively without catastrophic f
         replay_ratio: 0.3,
         min_tokens_to_train: 32,
         scan_interval_ms: 50,
+        ..Default::default()
     };
     let dataset = StreamDataset::new(initial_tokens, stream_cfg);
     let mut watcher = IncomingDirectoryWatcher::new(&incoming_dir).unwrap();

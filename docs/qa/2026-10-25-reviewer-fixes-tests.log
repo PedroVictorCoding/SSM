@@ -1,0 +1,36 @@
+   Compiling sail v0.1.0 (/home/pedro/Dev/SSM)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 16.94s
+     Running tests/test_outcome_verification.rs (target/debug/deps/test_outcome_verification-fbffe39932fbbc49)
+
+running 5 tests
+test test_failure_or_timeout_avoids_false_spoken_success ... ok
+test test_test_passed_requires_matching_complete_nonempty_evidence ... ok
+test test_user_corrections_cancel_obsolete_queued_steps ... ok
+test test_tool_success_without_postcondition_rejects_task_completion ... ok
+test test_editor_error_and_test_scenario_traceability ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/test_tool_execution_broker.rs (target/debug/deps/test_tool_execution_broker-affcca95361dee6b)
+
+running 7 tests
+test test_idempotency_caching_and_replay_safety ... ok
+test test_cancellation_and_bounded_output_truncation ... ok
+test test_schema_validation_and_extra_fields_rejection ... ok
+test test_timeout_and_non_idempotent_retry_prevention ... ok
+test test_destructive_authorization_gate ... ok
+test test_unicode_output_obeys_byte_limit_without_panicking ... ok
+test test_capability_authorization_and_privileged_action_blocking ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/test_workspace_and_app_adapters.rs (target/debug/deps/test_workspace_and_app_adapters-d414815c6d3b6960)
+
+running 4 tests
+test test_path_traversal_and_stale_file_version_prevention ... ok
+test test_unsupported_application_and_invalid_url_reporting ... ok
+test test_moved_control_and_dpi_change_detection ... ok
+test test_visible_error_code_inspection_and_test_runner ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 37.65s
+

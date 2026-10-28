@@ -18,6 +18,10 @@ use serde::{Deserialize, Serialize};
 
 use super::{Batch, Tokenizer, batch_from_starts};
 
+fn default_max_replay_tokens() -> usize {
+    1_000_000
+}
+
 /// Configuration for streaming continual dataset ingestion.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct StreamConfig {
@@ -27,6 +31,9 @@ pub struct StreamConfig {
     pub min_tokens_to_train: usize,
     /// Watcher scan interval in milliseconds.
     pub scan_interval_ms: u64,
+    /// Maximum experience replay tokens in RAM (bounded replay buffer capacity).
+    #[serde(default = "default_max_replay_tokens")]
+    pub max_replay_tokens: usize,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -42,6 +49,7 @@ impl Default for StreamConfig {
             replay_ratio: 0.3,
             min_tokens_to_train: 256,
             scan_interval_ms: 1000,
+            max_replay_tokens: default_max_replay_tokens(),
         }
     }
 }
@@ -112,6 +120,13 @@ impl StreamDataset {
         // Update watermark so replay sampler knows what is new
         let mut watermark = self.new_data_watermark.write().unwrap();
         *watermark = current_len;
+
+        // Bounded Experience Replay Buffer: enforce max_replay_tokens capacity
+        if self.config.max_replay_tokens > 0 && tokens.len() > self.config.max_replay_tokens {
+            let excess = tokens.len() - self.config.max_replay_tokens;
+            tokens.drain(0..excess);
+            *watermark = watermark.saturating_sub(excess);
+        }
     }
 
     /// Appends raw text, tokenizing it with the provided tokenizer.
@@ -253,6 +268,24 @@ impl IncomingDirectoryWatcher {
                 if ext == "txt" || ext == "jsonl" || ext == "md" {
                     if let Ok(content) = fs::read_to_string(&path) {
                         if !content.trim().is_empty() {
+                            let lower = content.to_lowercase();
+                            if lower.contains("\"origin\":\"runtime_synthetic\"")
+                                || lower.contains("\"origin\": \"runtime_synthetic\"")
+                                || lower.contains("\"origin\":\"agent_trace\"")
+                                || lower.contains("\"origin\": \"agent_trace\"")
+                                || lower.contains("\"origin\":\"session_capture\"")
+                                || lower.contains("\"origin\": \"session_capture\"")
+                                || lower.contains("\"provenance\":\"runtime_output\"")
+                                || lower.contains("\"provenance\": \"runtime_output\"")
+                            {
+                                eprintln!(
+                                    "[Stream Ingest] Rejected {}: Autonomous recursive self-improvement prohibited. Runtime-generated or session capture data cannot enter training queue.",
+                                    path.display()
+                                );
+                                self.processed_files.insert(path);
+                                continue;
+                            }
+
                             let tokens = match tokenizer.encode(&content) {
                                 Ok(tokens) if !tokens.is_empty() => tokens,
                                 _ => {

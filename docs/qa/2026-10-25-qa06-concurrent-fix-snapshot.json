@@ -1,0 +1,8 @@
+{
+  "reviewed_at": "2026-10-25",
+  "compiled_sail_rlib_sha256": "1f4f494c60e57ad19601023d722371149e6ea0c23d5b425ce1dcabad6ab15523",
+  "capability_sha256": "87980c5a07315779d32854b1fb81ef349f226d1e587787bb7c7d22058d18e090",
+  "workspace_sha256": "56677bc4bfe3853c528abbee1ce5565cf45601e503a2fdd95621a34072565e4a",
+  "probe_sha256": "91a0af42ee831f397df770aec52baea9177c00117daa1c82f9772c0b8c3e6805",
+  "targeted_tests": { "exit_code": 0, "passed": 21, "failed": 0 }
+}

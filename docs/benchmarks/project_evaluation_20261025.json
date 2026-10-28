@@ -1,0 +1,139 @@
+{
+  "date": "2026-10-25",
+  "head": "4075a082992608fa3f5d6edab0c6d27edeed37bc",
+  "scope": "Current working tree; includes uncommitted multimodal/engine/OS changes. Historical GPU benchmarks are separate.",
+  "cpu_tests": {
+    "command": "cargo test --release --offline --no-default-features --features ndarray",
+    "passed": 52,
+    "failed": 0,
+    "ignored": 0,
+    "output": "    Blocking waiting for file lock on artifact directory\n    Finished `release` profile [optimized] target(s) in 12.08s\n     Running unittests src/lib.rs (target/release/deps/sail-24eb76be35d647fb)\n\nrunning 4 tests\ntest optim::tests::device_clipping_matches_burn_for_zero_small_and_large_norms ... ok\ntest train::numerical_tests::health_checks_reject_nan_weights_and_infinite_gradients ... ok\ntest train::numerical_tests::numerical_failure_keeps_checkpoint_files_and_reports_failed_state ... ok\ntest storage::tests::interrupted_publication_preserves_previous_file_and_cleans_temp ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n     Running unittests src/main.rs (target/release/deps/sail-2833ca6158dc49d3)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/test_bpe.rs (target/release/deps/test_bpe-9235e0fce1976bf8)\n\nrunning 3 tests\ntest test_bpe_tokenizer_byte_fallback ... ok\ntest test_bpe_save_and_load ... ok\ntest test_bpe_training_and_compression ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/test_bpe_train.rs (target/release/deps/test_bpe_train-305b50f0dc336360)\n\nrunning 1 test\ntest test_bpe_training_and_generation ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s\n\n     Running tests/test_checkpoint_reliability.rs (target/release/deps/test_checkpoint_reliability-abf7230e6255b937)\n\nrunning 3 tests\ntest regular_resume_matches_uninterrupted_with_optimizer_and_sampler_state ... ok\ntest streaming_resume_restores_replay_rng_validation_and_visualization ... ok\ntest live_inference_reads_complete_artifacts_while_training_publishes ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.76s\n\n     Running tests/test_concurrent_engine.rs (target/release/deps/test_concurrent_engine-4a7faa0ecf151912)\n\nrunning 1 test\ntest test_concurrent_parallel_engine_and_hot_reload ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s\n\n     Running tests/test_continual_learning.rs (target/release/deps/test_continual_learning-b689ff3a8548b954)\n\nrunning 1 test\ntest test_continual_stream_training_and_live_sea_artifact ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s\n\n     Running tests/test_export.rs (target/release/deps/test_export-4a1178312e312dca)\n\nrunning 1 test\ntest test_export_and_native_standalone_runner ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s\n\n     Running tests/test_gpu_reference.rs (target/release/deps/test_gpu_reference-e61fe4e9c52d71c8)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/test_gpu_training.rs (target/release/deps/test_gpu_training-fd1526093fc94d17)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/test_kernel_scan.rs (target/release/deps/test_kernel_scan-c5b6929bedd7225c)\n\nrunning 1 test\ntest test_associative_scan_kernel_correctness ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/test_mmap_moe.rs (target/release/deps/test_mmap_moe-cb18a327e76674b7)\n\nrunning 1 test\ntest test_mmap_expert_streaming_equivalence ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n     Running tests/test_model.rs (target/release/deps/test_model-1522700b42938a67)\n\nrunning 4 tests\ntest test_scan_equivalence ... ok\ntest test_moe_active_parameters_and_aux_loss ... ok\ntest test_mamba_step_equals_forward ... ok\ntest test_hybrid_stateful_decoding_equals_naive ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s\n\n     Running tests/test_multimodal_ingest.rs (target/release/deps/test_multimodal_ingest-5f55531156d48bd8)\n\nrunning 3 tests\ntest test_ppm_image_loading ... ok\ntest test_omnimodal_dataset_sampling_and_watcher_ingest ... ok\ntest test_mel_spectrogram_extraction_and_wav_loading ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s\n\n     Running tests/test_multimodal_projectors.rs (target/release/deps/test_multimodal_projectors-1a822269d777436b)\n\nrunning 3 tests\ntest test_vision_projector_patch_embeddings ... ok\ntest test_audio_projector_causal_striding ... ok\ntest test_omnimodal_hybrid_interleaved_forward_and_recurrent_step ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n     Running tests/test_omnimodal_stream_train.rs (target/release/deps/test_omnimodal_stream_train-fa3e6b997e48aa1a)\n\nrunning 1 test\ntest test_omnimodal_stream_train_end_to_end_and_resume ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s\n\n     Running tests/test_omnimodal_training.rs (target/release/deps/test_omnimodal_training-29113cf4098f2c83)\n\nrunning 1 test\ntest test_train_and_reproduce_omnimodal_off_the_hook ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s\n\n     Running tests/test_redox_os_integration.rs (target/release/deps/test_redox_os_integration-206b37e28c1c7796)\n\nrunning 2 tests\ntest test_redox_scheme_packet_lifecycle ... ok\ntest test_redox_daemon_with_live_engine_inference ... ok\n\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s\n\n     Running tests/test_resume.rs (target/release/deps/test_resume-17d2b09b8f79c735)\n\nrunning 1 test\ntest test_training_checkpoint_and_resume ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s\n\n     Running tests/test_scan_tree.rs (target/release/deps/test_scan_tree-ca33f4cf182801f8)\n\nrunning 3 tests\ntest tree_handles_zero_and_identity_transitions ... ok\ntest tree_mamba_matches_recurrent_decode_and_old_configs_load ... ok\ntest parallel_scans_match_reference_outputs_and_gradients ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n     Running tests/test_ssm.rs (target/release/deps/test_ssm-a9d20ef3ee2cc785)\n\nrunning 5 tests\ntest test_parallel_scan_matches_sequential ... ok\ntest test_moe_hybrid_active_params_reporting ... ok\ntest test_moe_dynamic_active_parameters ... ok\ntest test_mamba_recurrent_step_matches_sequence ... ok\ntest test_hybrid_jamba_step_matches_prefill ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n     Running tests/test_stream_data.rs (target/release/deps/test_stream_data-25f7120592454d05)\n\nrunning 4 tests\ntest test_stream_dataset_append_and_distribution ... ok\ntest test_stream_dataset_experience_replay_batch_sampling ... ok\ntest test_incoming_directory_watcher_ingestion ... ok\ntest test_ingestion_receipt_only_acknowledges_successful_tokenization ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/test_telemetry.rs (target/release/deps/test_telemetry-0a40fa4e8fbad043)\n\nrunning 1 test\ntest neural_snapshot_covers_every_parameter_and_preserves_gradients ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n     Running tests/test_tools_and_entropy.rs (target/release/deps/test_tools_and_entropy-938391dfd55ff7ef)\n\nrunning 4 tests\ntest test_compute_normalized_entropy_extremes ... ok\ntest test_tool_registry_web_search ... ok\ntest test_stateful_generation_with_tool_calling_and_entropy ... ok\ntest test_entropy_triggered_anti_hallucination_verification ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.65s\n\n     Running tests/test_voice.rs (target/release/deps/test_voice-ab57462d27bb0490)\n\nrunning 4 tests\ntest test_asr_and_hardware_presence ... ok\ntest test_audio_ring_buffer_fifo ... ok\ntest test_vad_speech_activity_and_turn_detection ... ok\ntest test_voice_tts_synthesis_and_wav_generation ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Doc-tests sail\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+  },
+  "cpu_training_microbenchmark": {
+    "command": "cargo run --release --offline --example bench_train_step -- 4 64 64 9",
+    "chunked_ms": 189.99,
+    "tree_ms": 107.826,
+    "speedup": 1.762,
+    "maximum_loss_difference": 2.4e-07,
+    "output": "   Compiling sail v0.1.0 (/home/pedro/Dev/SSM)\n    Finished `release` profile [optimized] target(s) in 13.21s\n     Running `target/release/examples/bench_train_step 4 64 64 9`\nBackend: ndarray (CPU); B=4, L=64, width=64; 4 layers [M M A M], 4 experts/top-2; 9 repeats\nchunked_ms,tree_ms,speedup,max_loss_difference\n189.990,107.826,1.762,0.00000024\n",
+    "notes": "One warmup and nine measured steps per strategy; alternating order; same starting weights and synthetic batches. Excludes ingestion, validation, checkpointing and visualization."
+  },
+  "run_audit": {
+    "run": "runs/hf_gpu_20261025_075531",
+    "checkpoint_step": 4000,
+    "parameters": 575168,
+    "training_buffer_tokens": 110877,
+    "validation_tokens": 929,
+    "actual_validation_windows": 7,
+    "matching_input_and_target_windows_in_training": 7,
+    "windows": [
+      {
+        "validation_start": 0,
+        "training_start": 1092,
+        "length_including_target": 129
+      },
+      {
+        "validation_start": 133,
+        "training_start": 333,
+        "length_including_target": 129
+      },
+      {
+        "validation_start": 266,
+        "training_start": 466,
+        "length_including_target": 129
+      },
+      {
+        "validation_start": 399,
+        "training_start": 1655,
+        "length_including_target": 129
+      },
+      {
+        "validation_start": 532,
+        "training_start": 936,
+        "length_including_target": 129
+      },
+      {
+        "validation_start": 665,
+        "training_start": 1069,
+        "length_including_target": 129
+      },
+      {
+        "validation_start": 798,
+        "training_start": 310,
+        "length_including_target": 129
+      }
+    ],
+    "token_presentations": 16384000,
+    "incoming_files": 524,
+    "unique_incoming_file_contents": 11,
+    "most_repeated_content_counts": [
+      172,
+      171,
+      171
+    ]
+  },
+  "external_sources": {
+    "smollm2": "https://huggingface.co/HuggingFaceTB/SmolLM2-135M-Instruct",
+    "mamba": "https://github.com/state-spaces/mamba",
+    "jamba": "https://huggingface.co/ai21labs/Jamba-v0.1",
+    "llama_bench": "https://github.com/ggml-org/llama.cpp/blob/master/tools/llama-bench/README.md"
+  },
+  "comparison_limit": "No matched Sail-versus-PyTorch/Mamba/llama.cpp benchmark was executed. External throughput is a published example on different hardware and model; no relative speed claim follows.",
+  "source_file_sha256": {
+    "Cargo.toml": "a801eb100c498a41dca0c54faa3df5b8a3624d9802d6830e407ba50a0ae617cc",
+    "src/data.rs": "c8131b89985bbd1fb0e9d8c8979c02fccf3d37d0f81f0df6622d30a2c74e7923",
+    "src/telemetry.rs": "2735564a031ffbea409aafa8c3b26912a40961432a724cbd4a71053a7dff96ba",
+    "src/train.rs": "818950600f37bac3f6d145ebcca3eaa5f83fae48e5899665b546bcc8288e2f95",
+    "src/export.rs": "d09ce57bea1e907db328c4812c73187a9282897555802f2f5938b8cb35ce39ab",
+    "src/profile.rs": "a84f48d105a4ee8bc3b524095a0a08a669616048caf8ba5ddba70e3d597f2dac",
+    "src/generate.rs": "8a475cbc878b60ffb7d48d7f1d8ab561dc7d43589c45866524bab3a61a8f6c27",
+    "src/lib.rs": "77bff29de1df78fb5b9834fcc4c733a2bb50ee503e02d942206609a305ac789a",
+    "src/tool.rs": "4fa6928421b94c3ac9e0d73793de1e91a6980d6ef30f1b001c3b0710cb7e72eb",
+    "src/backend.rs": "7505e19f663603cafb83ee735980863fc45e57f1acf19d50794faefa64738310",
+    "src/voice.rs": "fea295939b106c8bf1b1ced95ac06b4cec50503c8a21f034b611c71e946f13bd",
+    "src/optim.rs": "d14b6cd3ed21efc1a6bb750a75a9bb8d16d765ee40239b23581f65cd1999204f",
+    "src/main.rs": "2750736005ef3b2a7b8eda33b920d3b0f9ce8302cb4e8b1292079528d0373ee4",
+    "src/storage.rs": "d62a63b33efa91207dca4777b74d82b3ab29c8312def3452687570c45f8c6a03",
+    "src/kernel/scan.rs": "ca03220abbe8ee38c0a2749f830cfd1051d060b8ad54a124b99d1906840b4a1b",
+    "src/kernel/mod.rs": "69b455eb863ced167055ae2efee64fdb667bf13407fcaa048e6bf075a73d1e44",
+    "src/os/redox.rs": "98bf1a26e4e927db120e92aa7da478f12d17100f4085c986331a712691aa76b2",
+    "src/os/mod.rs": "4c0e72c987381e9d79eefae9529e739e1c7daf92ef34be8a8de01b29737db8a5",
+    "src/data/multimodal.rs": "c97ee150991c0541e54dfae433450d1f8b1c8e2eee7ac2b9c3ffc9b6d5ae89f4",
+    "src/data/bpe.rs": "b29c76826cdcc9d6849fd99a7f586f36262e601cb07a87918917d6f04a8b41f8",
+    "src/data/stream.rs": "dce347ba1dedddf74e0f1c94439d69687e82c8311efa3a254686a3b1fe136f43",
+    "src/engine/mod.rs": "cc36c422f5fddba097b88ee12d5745e15e66530f0775bfa9c72e27d8583e0d69",
+    "src/model/moe.rs": "d6412a52edeb5697a67f0a7a1c6e1484d1232b58a021cddcdda010c8947ede14",
+    "src/model/multimodal.rs": "9a1512588742f3ccaccf0c23da3dfa0f8546005e5809fdf4caad560a02a22c17",
+    "src/model/scan.rs": "5deda2eb74f48d209bbab4b9429e301ea3204a0488060655f558a07626b0de22",
+    "src/model/mod.rs": "a428131283079b3ba9b328408702c9da32eb15b8b0d88c87f394ae74640587df",
+    "src/model/hybrid.rs": "e0c3fcf6c24535e7414995c91eaa41d29edb6e9574954b686f38d8f3713d4a10",
+    "src/model/mmap_moe.rs": "fb362eb80a41c796dfff5d096e69821f975a0b91570dd8310fa032f33e63c783",
+    "src/model/mamba.rs": "4f444cd1763d69c8ce05c0794d000add258d54ad1543832dbe272c6afff3dad8",
+    "src/model/mlp.rs": "3a7fd198b79d1527c04521e52029f0a54e54c513cadaa789169b8178e31b9ebf",
+    "src/model/norm.rs": "c5848086c4911c15a660674013ef1af4f2b7b9230232b9a48a26a3a619d297e9",
+    "src/model/attention.rs": "8728886d5c8183169994b984156101d8ab56c1dbcec1d8a3997a7c3187fa43f9",
+    "tests/test_mmap_moe.rs": "56bf242b6798375fb08da535192dee180b2fac40e10f2972a4995fca321d6cea",
+    "tests/test_telemetry.rs": "f8fed8ea13a240e2d96f9511ffd92cab89873b10c80f6db99def31bc0d85bae0",
+    "tests/test_continual_learning.rs": "df2b309186e07e7b59917a306f9f347fe19737b9e6ebda6700058e5587e03737",
+    "tests/test_omnimodal_stream_train.rs": "6a0851685ec7816c2491a4602000b6d3d65e084d0038e62b2eac39ad3ff5aa21",
+    "tests/test_model.rs": "137c80f6fac86c26de5eb10a1c2822c2c9a57a3ee1f8158bd86e0e1949140224",
+    "tests/test_bpe_train.rs": "ae02d22e2368a426b9e71d22e288585fc9c2ef656284d99e530f8280ab3eeb84",
+    "tests/test_export.rs": "87e620ad7e7547f698bff49fdea7676a9caab66f716f143305ce79bd4dbfca33",
+    "tests/test_scan_tree.rs": "0d05741c3bc3fab220a0d03c8f7160061352e62778568e25aa4b0f62aa085471",
+    "tests/test_voice.rs": "95f17ff46eb420e75fbeb7477a7c42239439fad09621ffb7878812484d108ad8",
+    "tests/test_multimodal_projectors.rs": "a4d5f47aab3d8db6a704e8a8504b469733aefe03fa4100af676af057e981c457",
+    "tests/test_bpe.rs": "5ef9a6a1684d68bf162ce52d3b6ce918bf2aa31dab125e92cb9bfaaeed2649fc",
+    "tests/test_tools_and_entropy.rs": "4c010aa325bcdad38fbc502cc22a984e177eb2dce6b0c07ed40ae17d4b44eb40",
+    "tests/test_kernel_scan.rs": "74c7641950a788b05f16f7ecb8c47c0a4a2c4baa3cb2d5799deb2ca495fab9ea",
+    "tests/test_multimodal_ingest.rs": "14f9ac64b7ad3df87e5b89ddc6df87bac3144d108eba2791e49f4bd70b3a964d",
+    "tests/test_ssm.rs": "113176aaef247b9921373a51d5a8b770302382eb3056d1d9ed26d16b6ae573d1",
+    "tests/test_omnimodal_training.rs": "5e0fb8acb3d071b6854d459329d7fc0253798238c33630c1c9a1d501b43a3f05",
+    "tests/test_gpu_reference.rs": "dced10aab681a2a053f7992065c3ea9bf507ad84e268e132f10da986012852db",
+    "tests/test_resume.rs": "22c02b1991bd0ba272fbe758d67d3600b345be94327771f7672c4a99b66704c9",
+    "tests/test_gpu_training.rs": "fae04e13b36079f7b18eb3d09f5ef5a6b684e464dd6336c436c9df1c07a095fe",
+    "tests/test_stream_data.rs": "799448a8764a23a6624d33b3413a2ee3531f23f0a356dfb8534a9bd24ed0207a",
+    "tests/test_redox_os_integration.rs": "130010c8871286113a4b15245ddf3ce6401f0be3eeb8bd3d7680ea2bee595c60",
+    "tests/test_concurrent_engine.rs": "2a5a56f12cc268670c209b50191eaffa6a8b259249d85bd549bcd17f40971b24",
+    "tests/test_checkpoint_reliability.rs": "e80c4413e28d4fbb0b7edbb21f5255f085dcb9163c00a458a347e55a7f18a49d"
+  }
+}

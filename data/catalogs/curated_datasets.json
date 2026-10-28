@@ -1,0 +1,1531 @@
+{
+  "schema_version": 1,
+  "verified_on": "2026-10-25",
+  "purpose": "Sizing catalog transcribed from docs/CURATED_DATASETS.md; not an hf_streamer --sources configuration or a download-all plan.",
+  "alignment_policy": "../../ALIGNMENT.md",
+  "selection_policy": "Human-defined external sources only. Catalog membership does not alter the active pipeline or authorize model-controlled source selection.",
+  "units": {
+    "bytes": "decimal bytes; GB=1e9, TB=1e12",
+    "text_tokens": "publisher tokenizers and corpus scopes vary; exact SAIL tokens unknown until extraction, formatting, filtering and tokenization",
+    "null": "unknown/unverified/not applicable, never zero"
+  },
+  "aggregation_policy": [
+    "Repeated FineWeb-Edu rows are one entry with two categories.",
+    "Alternative configs and nested subsets are not added together.",
+    "Cross-dataset content overlap is not removed; sums are gross, not unique data.",
+    "Byte totals distinguish Parquet, annotations, media and uncompressed content.",
+    "Records/hours across training and evaluation scopes are not a train-only budget.",
+    "No automatic full-catalog downloading; existing bounded prefetch is unchanged."
+  ],
+  "datasets": [
+    {
+      "id": "python-edu",
+      "name": "Python-Edu",
+      "categories": [
+        "code"
+      ],
+      "modalities": [
+        "text"
+      ],
+      "url": "https://huggingface.co/datasets/HuggingFaceTB/smollm-corpus",
+      "hf": {
+        "dataset": "HuggingFaceTB/smollm-corpus",
+        "config": "python-edu",
+        "revision": "3ba9d605774198c5868892d7a8deda78031a781f"
+      },
+      "original_hf_id": null,
+      "payload": "metadata_with_external_code",
+      "access": {
+        "hub_gated": false,
+        "metadata_error": null,
+        "size_api_error": null
+      },
+      "metrics": {
+        "download_bytes": {
+          "value": 643903049,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/HuggingFaceTB/smollm-corpus"
+        },
+        "decoded_bytes": {
+          "value": 989334135,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/HuggingFaceTB/smollm-corpus"
+        },
+        "records": {
+          "value": 7678448,
+          "unit": "records",
+          "status": "metadata_snapshot",
+          "scope": "selected configuration, all published splits",
+          "source": "https://datasets-server.huggingface.co/size?dataset=HuggingFaceTB/smollm-corpus"
+        },
+        "parquet_bytes": {
+          "value": 643903049,
+          "unit": "bytes",
+          "status": "metadata_snapshot",
+          "scope": "selected configuration, all published splits; media only if embedded",
+          "source": "https://datasets-server.huggingface.co/size?dataset=HuggingFaceTB/smollm-corpus"
+        },
+        "text_tokens": {
+          "value": 4000000000,
+          "unit": "tokens",
+          "status": "reported_approximate",
+          "scope": "publisher corpus claim for resolved code; not Parquet metadata",
+          "source": "https://github.com/huggingface/blog/blob/main/smollm.md"
+        },
+        "audio_hours": null,
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "Not FineWeb-Edu Python. Published Parquet contains blob IDs, not code text; Software Heritage content must be fetched separately. Listed bytes exclude code content."
+      ],
+      "splits": [
+        {
+          "name": "train",
+          "records": 7678448
+        }
+      ]
+    },
+    {
+      "id": "the-stack-v2",
+      "name": "The Stack v2",
+      "categories": [
+        "code"
+      ],
+      "modalities": [
+        "text"
+      ],
+      "url": "https://huggingface.co/datasets/bigcode/the-stack-v2",
+      "hf": {
+        "dataset": "bigcode/the-stack-v2",
+        "config": null,
+        "revision": "e565caa3a78c2423bd374333a472b049eb090e47"
+      },
+      "original_hf_id": null,
+      "payload": "metadata_with_external_code",
+      "access": {
+        "hub_gated": "auto",
+        "metadata_error": null,
+        "size_api_error": "HTTP Error 401: Unauthorized"
+      },
+      "metrics": {
+        "download_bytes": null,
+        "parquet_bytes": null,
+        "decoded_bytes": null,
+        "records": null,
+        "text_tokens": null,
+        "audio_hours": null,
+        "images": null,
+        "videos": null,
+        "raw_content_bytes": {
+          "value": 67530000000000,
+          "unit": "bytes",
+          "status": "reported_approximate",
+          "scope": "publisher full uncompressed code corpus; NOT download bytes",
+          "source": "https://huggingface.co/datasets/bigcode/the-stack-v2"
+        }
+      },
+      "notes": [
+        "Gated; full code contents require Software Heritage retrieval. 900B-token figure describes a filtered training version, not this full catalog selection; excluded from token subtotal."
+      ]
+    },
+    {
+      "id": "starcoderdata",
+      "name": "StarCoder Data",
+      "categories": [
+        "code"
+      ],
+      "modalities": [
+        "text"
+      ],
+      "url": "https://huggingface.co/datasets/bigcode/starcoderdata",
+      "hf": {
+        "dataset": "bigcode/starcoderdata",
+        "config": null,
+        "revision": "9fc30b578cedaec69e47302df72cf00feed7c8c4"
+      },
+      "original_hf_id": null,
+      "payload": "included",
+      "access": {
+        "hub_gated": "auto",
+        "metadata_error": null,
+        "size_api_error": "HTTP Error 401: Unauthorized"
+      },
+      "metrics": {
+        "download_bytes": null,
+        "parquet_bytes": null,
+        "decoded_bytes": null,
+        "records": null,
+        "text_tokens": {
+          "value": 250000000000,
+          "unit": "tokens",
+          "status": "reported_approximate",
+          "scope": "publisher approximate full corpus, tokenizer not specified",
+          "source": "https://huggingface.co/datasets/bigcode/starcoderdata"
+        },
+        "audio_hours": null,
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "Gated. Languages and auxiliary datasets must be selected before downloading."
+      ]
+    },
+    {
+      "id": "python-instructions",
+      "name": "Python Instructions 18k",
+      "categories": [
+        "code"
+      ],
+      "modalities": [
+        "text"
+      ],
+      "url": "https://huggingface.co/datasets/iamtarun/python_code_instructions_18k_alpaca",
+      "hf": {
+        "dataset": "iamtarun/python_code_instructions_18k_alpaca",
+        "config": null,
+        "revision": "7cae181e29701a8663a07a3ea43c8e105b663ba1"
+      },
+      "original_hf_id": null,
+      "payload": "included",
+      "access": {
+        "hub_gated": false,
+        "metadata_error": null,
+        "size_api_error": null
+      },
+      "metrics": {
+        "download_bytes": {
+          "value": 11357076,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/iamtarun/python_code_instructions_18k_alpaca"
+        },
+        "decoded_bytes": {
+          "value": 25180782,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/iamtarun/python_code_instructions_18k_alpaca"
+        },
+        "records": {
+          "value": 18612,
+          "unit": "records",
+          "status": "metadata_snapshot",
+          "scope": "selected configuration, all published splits",
+          "source": "https://datasets-server.huggingface.co/size?dataset=iamtarun/python_code_instructions_18k_alpaca"
+        },
+        "parquet_bytes": {
+          "value": 11357076,
+          "unit": "bytes",
+          "status": "metadata_snapshot",
+          "scope": "selected configuration, all published splits; media only if embedded",
+          "source": "https://datasets-server.huggingface.co/size?dataset=iamtarun/python_code_instructions_18k_alpaca"
+        },
+        "text_tokens": null,
+        "audio_hours": null,
+        "images": null,
+        "videos": null
+      },
+      "notes": [],
+      "splits": [
+        {
+          "name": "train",
+          "records": 18612
+        }
+      ]
+    },
+    {
+      "id": "gsm8k",
+      "name": "GSM8K",
+      "categories": [
+        "code"
+      ],
+      "modalities": [
+        "text"
+      ],
+      "url": "https://huggingface.co/datasets/openai/gsm8k",
+      "hf": {
+        "dataset": "openai/gsm8k",
+        "config": "main",
+        "revision": "740312add88f781978c0658806c59bc2815b9866"
+      },
+      "original_hf_id": null,
+      "payload": "included",
+      "access": {
+        "hub_gated": false,
+        "metadata_error": null,
+        "size_api_error": null
+      },
+      "metrics": {
+        "download_bytes": {
+          "value": 2725633,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/openai/gsm8k"
+        },
+        "decoded_bytes": {
+          "value": 4676934,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/openai/gsm8k"
+        },
+        "records": {
+          "value": 8792,
+          "unit": "records",
+          "status": "metadata_snapshot",
+          "scope": "selected configuration, all published splits",
+          "source": "https://datasets-server.huggingface.co/size?dataset=openai/gsm8k"
+        },
+        "parquet_bytes": {
+          "value": 2725633,
+          "unit": "bytes",
+          "status": "metadata_snapshot",
+          "scope": "selected configuration, all published splits; media only if embedded",
+          "source": "https://datasets-server.huggingface.co/size?dataset=openai/gsm8k"
+        },
+        "text_tokens": null,
+        "audio_hours": null,
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "Keep test split held out; socratic is an alternative configuration, not extra unique problems."
+      ],
+      "splits": [
+        {
+          "name": "train",
+          "records": 7473
+        },
+        {
+          "name": "test",
+          "records": 1319
+        }
+      ]
+    },
+    {
+      "id": "competition-math",
+      "name": "MATH",
+      "categories": [
+        "code"
+      ],
+      "modalities": [
+        "text"
+      ],
+      "url": "https://huggingface.co/datasets/hendrycks/competition_math",
+      "hf": {
+        "dataset": "hendrycks/competition_math",
+        "config": null,
+        "revision": "71b758ecc688b2822d07ffa7f8393299f1dc7cac"
+      },
+      "original_hf_id": null,
+      "payload": "included",
+      "access": {
+        "hub_gated": false,
+        "metadata_error": null,
+        "size_api_error": "HTTP Error 401: Unauthorized"
+      },
+      "metrics": {
+        "download_bytes": {
+          "value": 20327424,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/hendrycks/competition_math"
+        },
+        "decoded_bytes": {
+          "value": 9717363,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/hendrycks/competition_math"
+        },
+        "records": {
+          "value": 12500,
+          "unit": "records",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/hendrycks/competition_math"
+        },
+        "parquet_bytes": null,
+        "text_tokens": null,
+        "audio_hours": null,
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "Keep test split held out."
+      ],
+      "splits": [
+        {
+          "name": "train",
+          "records": 7500
+        },
+        {
+          "name": "test",
+          "records": 5000
+        }
+      ]
+    },
+    {
+      "id": "crates-index",
+      "name": "Rust Crates Index",
+      "categories": [
+        "code"
+      ],
+      "modalities": [
+        "text"
+      ],
+      "url": "https://github.com/rust-lang/crates.io-index",
+      "hf": null,
+      "original_hf_id": null,
+      "payload": "index_only",
+      "access": {
+        "hub_gated": null,
+        "metadata_error": null,
+        "size_api_error": null
+      },
+      "metrics": {
+        "download_bytes": null,
+        "parquet_bytes": null,
+        "decoded_bytes": null,
+        "records": null,
+        "text_tokens": null,
+        "audio_hours": null,
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "This is package/version metadata, not Rust API documentation. Documentation requires separate sources such as docs.rs or rustdoc output."
+      ]
+    },
+    {
+      "id": "fineweb-edu",
+      "name": "FineWeb-Edu",
+      "categories": [
+        "science",
+        "general"
+      ],
+      "modalities": [
+        "text"
+      ],
+      "url": "https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu",
+      "hf": {
+        "dataset": "HuggingFaceFW/fineweb-edu",
+        "config": "default",
+        "revision": "87f09149ef4734204d70ed1d046ddc9ca3f2b8f9"
+      },
+      "original_hf_id": null,
+      "payload": "included",
+      "access": {
+        "hub_gated": false,
+        "metadata_error": null,
+        "size_api_error": null
+      },
+      "metrics": {
+        "parquet_bytes": {
+          "value": 4522727684984,
+          "unit": "bytes",
+          "status": "metadata_snapshot",
+          "scope": "selected configuration, all published splits; media only if embedded",
+          "source": "https://datasets-server.huggingface.co/size?dataset=HuggingFaceFW/fineweb-edu"
+        },
+        "records": {
+          "value": 1525223056,
+          "unit": "records",
+          "status": "metadata_snapshot",
+          "scope": "selected configuration, all published splits",
+          "source": "https://datasets-server.huggingface.co/size?dataset=HuggingFaceFW/fineweb-edu"
+        },
+        "download_bytes": null,
+        "decoded_bytes": null,
+        "text_tokens": {
+          "value": 1300000000000,
+          "unit": "tokens",
+          "status": "reported_approximate",
+          "scope": "publisher headline corpus claim; release-dependent, GPT-2 token convention",
+          "source": "https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu"
+        },
+        "audio_hours": null,
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "Science and general catalog rows refer to the same corpus; counted once. No science filter is specified. Config default includes full snapshots; sample configs overlap it. Published 1.3T claim is not a fresh token count of the pinned revision."
+      ],
+      "splits": [
+        {
+          "name": "train",
+          "records": 1525223056
+        }
+      ]
+    },
+    {
+      "id": "cosmopedia-v2",
+      "name": "Cosmopedia v2",
+      "categories": [
+        "science"
+      ],
+      "modalities": [
+        "text"
+      ],
+      "url": "https://huggingface.co/datasets/HuggingFaceTB/smollm-corpus",
+      "hf": {
+        "dataset": "HuggingFaceTB/smollm-corpus",
+        "config": "cosmopedia-v2",
+        "revision": "3ba9d605774198c5868892d7a8deda78031a781f"
+      },
+      "original_hf_id": "HuggingFaceTB/cosmopedia-v2",
+      "payload": "included",
+      "access": {
+        "hub_gated": false,
+        "metadata_error": null,
+        "size_api_error": "HTTP Error 404: Not Found"
+      },
+      "metrics": {
+        "download_bytes": {
+          "value": 122361137711,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/HuggingFaceTB/smollm-corpus"
+        },
+        "decoded_bytes": {
+          "value": 212503640747,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/HuggingFaceTB/smollm-corpus"
+        },
+        "records": {
+          "value": 39134000,
+          "unit": "records",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/HuggingFaceTB/smollm-corpus"
+        },
+        "parquet_bytes": null,
+        "text_tokens": {
+          "value": 28000000000,
+          "unit": "tokens",
+          "status": "reported_approximate",
+          "scope": "publisher approximate corpus, Mistral-7B tokenizer",
+          "source": "https://github.com/huggingface/blog/blob/main/smollm.md"
+        },
+        "audio_hours": null,
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "Old repository redirects to smollm-corpus; select cosmopedia-v2 explicitly. Includes synthetic educational text across subjects, not only science."
+      ],
+      "splits": [
+        {
+          "name": "train",
+          "records": 39134000
+        }
+      ]
+    },
+    {
+      "id": "arxiv",
+      "name": "arXiv Metadata and Abstracts",
+      "categories": [
+        "science"
+      ],
+      "modalities": [
+        "text"
+      ],
+      "url": "https://huggingface.co/datasets/arxiv-community/arxiv_dataset",
+      "hf": {
+        "dataset": "arxiv-community/arxiv_dataset",
+        "config": null,
+        "revision": "c70944cb158dcdab8a5403b1fa20f28119f701a6"
+      },
+      "original_hf_id": null,
+      "payload": "abstracts_and_metadata",
+      "access": {
+        "hub_gated": false,
+        "metadata_error": null,
+        "size_api_error": "HTTP Error 501: Not Implemented"
+      },
+      "metrics": {
+        "decoded_bytes": {
+          "value": 3056873071,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/arxiv-community/arxiv_dataset"
+        },
+        "records": {
+          "value": 2349354,
+          "unit": "records",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/arxiv-community/arxiv_dataset"
+        },
+        "download_bytes": null,
+        "parquet_bytes": null,
+        "text_tokens": null,
+        "audio_hours": null,
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "Contains metadata and abstracts, not full paper PDFs. Download size reported as zero is treated as unknown, not zero bytes."
+      ],
+      "splits": [
+        {
+          "name": "train",
+          "records": 2349354
+        }
+      ]
+    },
+    {
+      "id": "pubmed",
+      "name": "PubMed",
+      "categories": [
+        "science"
+      ],
+      "modalities": [
+        "text"
+      ],
+      "url": "https://huggingface.co/datasets/ncbi/pubmed",
+      "hf": {
+        "dataset": "ncbi/pubmed",
+        "config": "2024",
+        "revision": "8263182bec2a83be3f73706759adada1e1bfe3c6"
+      },
+      "original_hf_id": "pubmed",
+      "payload": "included",
+      "access": {
+        "hub_gated": false,
+        "metadata_error": null,
+        "size_api_error": "HTTP Error 404: Not Found"
+      },
+      "metrics": {
+        "download_bytes": {
+          "value": 45202943276,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/ncbi/pubmed"
+        },
+        "decoded_bytes": {
+          "value": 54723097181,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/ncbi/pubmed"
+        },
+        "records": {
+          "value": 36555430,
+          "unit": "records",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/ncbi/pubmed"
+        },
+        "parquet_bytes": null,
+        "text_tokens": null,
+        "audio_hours": null,
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "Pin 2024 configuration for reproducible counts. Includes structured metadata, not only abstracts."
+      ],
+      "splits": [
+        {
+          "name": "train",
+          "records": 36555430
+        }
+      ]
+    },
+    {
+      "id": "wikipedia-en",
+      "name": "English Wikipedia",
+      "categories": [
+        "science"
+      ],
+      "modalities": [
+        "text"
+      ],
+      "url": "https://huggingface.co/datasets/wikimedia/wikipedia",
+      "hf": {
+        "dataset": "wikimedia/wikipedia",
+        "config": "20231101.en",
+        "revision": "b04c8d1ceb2f5cd4588862100d08de323dccfbaa"
+      },
+      "original_hf_id": null,
+      "payload": "included",
+      "access": {
+        "hub_gated": false,
+        "metadata_error": null,
+        "size_api_error": null
+      },
+      "metrics": {
+        "download_bytes": {
+          "value": 11630929031,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/wikimedia/wikipedia"
+        },
+        "decoded_bytes": {
+          "value": 20200062385,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/wikimedia/wikipedia"
+        },
+        "records": {
+          "value": 6407814,
+          "unit": "records",
+          "status": "metadata_snapshot",
+          "scope": "selected configuration, all published splits",
+          "source": "https://datasets-server.huggingface.co/size?dataset=wikimedia/wikipedia"
+        },
+        "parquet_bytes": {
+          "value": 11630929031,
+          "unit": "bytes",
+          "status": "metadata_snapshot",
+          "scope": "selected configuration, all published splits; media only if embedded",
+          "source": "https://datasets-server.huggingface.co/size?dataset=wikimedia/wikipedia"
+        },
+        "text_tokens": null,
+        "audio_hours": null,
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "Full English snapshot; no STEM-only filter is defined."
+      ],
+      "splits": [
+        {
+          "name": "train",
+          "records": 6407814
+        }
+      ]
+    },
+    {
+      "id": "ultrachat",
+      "name": "UltraChat 200k",
+      "categories": [
+        "general"
+      ],
+      "modalities": [
+        "text"
+      ],
+      "url": "https://huggingface.co/datasets/HuggingFaceH4/ultrachat_200k",
+      "hf": {
+        "dataset": "HuggingFaceH4/ultrachat_200k",
+        "config": null,
+        "revision": "8049631c405ae6576f93f445c6b8166f76f5505a"
+      },
+      "original_hf_id": null,
+      "payload": "included",
+      "access": {
+        "hub_gated": false,
+        "metadata_error": null,
+        "size_api_error": null
+      },
+      "metrics": {
+        "download_bytes": {
+          "value": 1624049723,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/HuggingFaceH4/ultrachat_200k"
+        },
+        "decoded_bytes": {
+          "value": 3047427114,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/HuggingFaceH4/ultrachat_200k"
+        },
+        "records": {
+          "value": 515311,
+          "unit": "records",
+          "status": "metadata_snapshot",
+          "scope": "selected configuration, all published splits",
+          "source": "https://datasets-server.huggingface.co/size?dataset=HuggingFaceH4/ultrachat_200k"
+        },
+        "parquet_bytes": {
+          "value": 1624049723,
+          "unit": "bytes",
+          "status": "metadata_snapshot",
+          "scope": "selected configuration, all published splits; media only if embedded",
+          "source": "https://datasets-server.huggingface.co/size?dataset=HuggingFaceH4/ultrachat_200k"
+        },
+        "text_tokens": null,
+        "audio_hours": null,
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "Catalog size includes all four splits. Existing feeder selects train_sft (207865 rows); test splits remain held out."
+      ],
+      "splits": [
+        {
+          "name": "train_sft",
+          "records": 207865
+        },
+        {
+          "name": "test_sft",
+          "records": 23110
+        },
+        {
+          "name": "train_gen",
+          "records": 256032
+        },
+        {
+          "name": "test_gen",
+          "records": 28304
+        }
+      ]
+    },
+    {
+      "id": "openorca",
+      "name": "OpenOrca",
+      "categories": [
+        "general"
+      ],
+      "modalities": [
+        "text"
+      ],
+      "url": "https://huggingface.co/datasets/Open-Orca/OpenOrca",
+      "hf": {
+        "dataset": "Open-Orca/OpenOrca",
+        "config": null,
+        "revision": "e9c87b4abb2609913751f9b26553fdb9c061796c"
+      },
+      "original_hf_id": null,
+      "payload": "included",
+      "access": {
+        "hub_gated": false,
+        "metadata_error": null,
+        "size_api_error": null
+      },
+      "metrics": {
+        "parquet_bytes": {
+          "value": 2869773954,
+          "unit": "bytes",
+          "status": "metadata_snapshot",
+          "scope": "selected configuration, all published splits; media only if embedded",
+          "source": "https://datasets-server.huggingface.co/size?dataset=Open-Orca/OpenOrca"
+        },
+        "records": {
+          "value": 2942029,
+          "unit": "records",
+          "status": "metadata_snapshot",
+          "scope": "selected configuration, all published splits",
+          "source": "https://datasets-server.huggingface.co/size?dataset=Open-Orca/OpenOrca"
+        },
+        "download_bytes": null,
+        "decoded_bytes": null,
+        "text_tokens": null,
+        "audio_hours": null,
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "Viewer counts are the currently exposed configuration; not a claim that all historical releases have this row count."
+      ],
+      "splits": [
+        {
+          "name": "train",
+          "records": 2942029
+        }
+      ]
+    },
+    {
+      "id": "hotpotqa",
+      "name": "HotpotQA",
+      "categories": [
+        "general"
+      ],
+      "modalities": [
+        "text"
+      ],
+      "url": "https://huggingface.co/datasets/hotpotqa/hotpot_qa",
+      "hf": {
+        "dataset": "hotpotqa/hotpot_qa",
+        "config": "distractor",
+        "revision": "1908d6afbbead072334abe2965f91bd2709910ab"
+      },
+      "original_hf_id": "hotpot_qa",
+      "payload": "included",
+      "access": {
+        "hub_gated": false,
+        "metadata_error": null,
+        "size_api_error": "HTTP Error 404: Not Found"
+      },
+      "metrics": {
+        "download_bytes": {
+          "value": 359239231,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/hotpotqa/hotpot_qa"
+        },
+        "decoded_bytes": {
+          "value": 598664854,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/hotpotqa/hotpot_qa"
+        },
+        "records": {
+          "value": 97852,
+          "unit": "records",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/hotpotqa/hotpot_qa"
+        },
+        "parquet_bytes": null,
+        "text_tokens": null,
+        "audio_hours": null,
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "Select distractor; fullwiki overlaps and is not added. Hold validation/test out."
+      ],
+      "splits": [
+        {
+          "name": "train",
+          "records": 90447
+        },
+        {
+          "name": "validation",
+          "records": 7405
+        }
+      ]
+    },
+    {
+      "id": "toolace",
+      "name": "ToolACE",
+      "categories": [
+        "general"
+      ],
+      "modalities": [
+        "text",
+        "tool"
+      ],
+      "url": "https://huggingface.co/datasets/Team-ACE/ToolACE",
+      "hf": {
+        "dataset": "Team-ACE/ToolACE",
+        "config": null,
+        "revision": "6bda777c88d21e5a204703c1ee45597a8fa4f734"
+      },
+      "original_hf_id": null,
+      "payload": "included",
+      "access": {
+        "hub_gated": false,
+        "metadata_error": null,
+        "size_api_error": null
+      },
+      "metrics": {
+        "parquet_bytes": {
+          "value": 10765454,
+          "unit": "bytes",
+          "status": "metadata_snapshot",
+          "scope": "selected configuration, all published splits; media only if embedded",
+          "source": "https://datasets-server.huggingface.co/size?dataset=Team-ACE/ToolACE"
+        },
+        "records": {
+          "value": 11300,
+          "unit": "records",
+          "status": "metadata_snapshot",
+          "scope": "selected configuration, all published splits",
+          "source": "https://datasets-server.huggingface.co/size?dataset=Team-ACE/ToolACE"
+        },
+        "download_bytes": null,
+        "decoded_bytes": null,
+        "text_tokens": null,
+        "audio_hours": null,
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "Original table says ToolBench / ToolACE but links only ToolACE. ToolBench is not an additional catalog source."
+      ],
+      "splits": [
+        {
+          "name": "train",
+          "records": 11300
+        }
+      ]
+    },
+    {
+      "id": "common-voice-17",
+      "name": "Common Voice 17",
+      "categories": [
+        "audio"
+      ],
+      "modalities": [
+        "audio",
+        "text"
+      ],
+      "url": "https://huggingface.co/datasets/mozilla-foundation/common_voice_17_0",
+      "hf": {
+        "dataset": "mozilla-foundation/common_voice_17_0",
+        "config": null,
+        "revision": "11dc88355e899d1bf2df74f01b904a8544a17b33"
+      },
+      "original_hf_id": null,
+      "payload": "unresolved",
+      "access": {
+        "hub_gated": false,
+        "metadata_error": null,
+        "size_api_error": "HTTP Error 500: Internal Server Error"
+      },
+      "metrics": {
+        "download_bytes": null,
+        "parquet_bytes": null,
+        "decoded_bytes": null,
+        "records": null,
+        "text_tokens": null,
+        "audio_hours": null,
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "Language/configuration and actual audio availability must be specified. Original 30000+ hour claim is not independently verified for this selection; no size is assigned."
+      ]
+    },
+    {
+      "id": "librispeech",
+      "name": "LibriSpeech ASR",
+      "categories": [
+        "audio"
+      ],
+      "modalities": [
+        "audio",
+        "text"
+      ],
+      "url": "https://huggingface.co/datasets/openslr/librispeech_asr",
+      "hf": {
+        "dataset": "openslr/librispeech_asr",
+        "config": "all",
+        "revision": "71cacbfb7e2354c4226d01e70d77d5fca3d04ba1"
+      },
+      "original_hf_id": null,
+      "payload": "included",
+      "access": {
+        "hub_gated": false,
+        "metadata_error": null,
+        "size_api_error": null
+      },
+      "metrics": {
+        "download_bytes": {
+          "value": 61357943031,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/openslr/librispeech_asr"
+        },
+        "decoded_bytes": {
+          "value": 63826462287,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/openslr/librispeech_asr"
+        },
+        "records": {
+          "value": 292367,
+          "unit": "records",
+          "status": "metadata_snapshot",
+          "scope": "selected configuration, all published splits",
+          "source": "https://datasets-server.huggingface.co/size?dataset=openslr/librispeech_asr"
+        },
+        "parquet_bytes": {
+          "value": 61837670302,
+          "unit": "bytes",
+          "status": "metadata_snapshot",
+          "scope": "selected configuration, all published splits; media only if embedded",
+          "source": "https://datasets-server.huggingface.co/size?dataset=openslr/librispeech_asr"
+        },
+        "text_tokens": null,
+        "audio_hours": {
+          "value": 960,
+          "unit": "hours",
+          "status": "reported_approximate",
+          "scope": "training audio only (100+360+500); excludes dev/test",
+          "source": "https://huggingface.co/datasets/openslr/librispeech_asr"
+        },
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "Configuration all includes training and evaluation audio. Only train.* splits are training data."
+      ],
+      "splits": [
+        {
+          "name": "test.clean",
+          "records": 2620
+        },
+        {
+          "name": "test.other",
+          "records": 2939
+        },
+        {
+          "name": "train.clean.100",
+          "records": 28539
+        },
+        {
+          "name": "train.clean.360",
+          "records": 104014
+        },
+        {
+          "name": "train.other.500",
+          "records": 148688
+        },
+        {
+          "name": "validation.clean",
+          "records": 2703
+        },
+        {
+          "name": "validation.other",
+          "records": 2864
+        }
+      ]
+    },
+    {
+      "id": "voxceleb1",
+      "name": "VoxCeleb1",
+      "categories": [
+        "audio"
+      ],
+      "modalities": [
+        "audio"
+      ],
+      "url": "https://www.robots.ox.ac.uk/~vgg/data/voxceleb/vox1.html",
+      "hf": null,
+      "original_hf_id": null,
+      "payload": "unavailable_from_original_host",
+      "access": {
+        "hub_gated": null,
+        "metadata_error": null,
+        "size_api_error": null
+      },
+      "metrics": {
+        "download_bytes": null,
+        "parquet_bytes": null,
+        "decoded_bytes": null,
+        "records": {
+          "value": 153516,
+          "unit": "utterances",
+          "status": "reported",
+          "scope": "verification dev + test",
+          "source": "https://www.robots.ox.ac.uk/~vgg/data/voxceleb/vox1.html"
+        },
+        "text_tokens": null,
+        "audio_hours": null,
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "Original host no longer provides audio, URLs or identifying metadata. Alternative approved distribution required."
+      ]
+    },
+    {
+      "id": "voxceleb2",
+      "name": "VoxCeleb2",
+      "categories": [
+        "audio"
+      ],
+      "modalities": [
+        "audio"
+      ],
+      "url": "https://www.robots.ox.ac.uk/~vgg/data/voxceleb/vox2.html",
+      "hf": null,
+      "original_hf_id": null,
+      "payload": "unavailable_from_original_host",
+      "access": {
+        "hub_gated": null,
+        "metadata_error": null,
+        "size_api_error": null
+      },
+      "metrics": {
+        "download_bytes": null,
+        "parquet_bytes": null,
+        "decoded_bytes": null,
+        "records": {
+          "value": 1128246,
+          "unit": "utterances",
+          "status": "reported",
+          "scope": "dev + test",
+          "source": "https://www.robots.ox.ac.uk/~vgg/data/voxceleb/vox2.html"
+        },
+        "text_tokens": null,
+        "audio_hours": null,
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "Original host no longer provides audio/video, URLs or identifying metadata."
+      ]
+    },
+    {
+      "id": "gigaspeech",
+      "name": "GigaSpeech",
+      "categories": [
+        "audio"
+      ],
+      "modalities": [
+        "audio",
+        "text"
+      ],
+      "url": "https://huggingface.co/datasets/speechcolab/gigaspeech",
+      "hf": {
+        "dataset": "speechcolab/gigaspeech",
+        "config": "xl",
+        "revision": "63c0836b643dc6136a608de041e56b67c12649b3"
+      },
+      "original_hf_id": null,
+      "payload": "included",
+      "access": {
+        "hub_gated": "auto",
+        "metadata_error": null,
+        "size_api_error": "HTTP Error 401: Unauthorized"
+      },
+      "metrics": {
+        "download_bytes": {
+          "value": 1151819604549,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/speechcolab/gigaspeech"
+        },
+        "decoded_bytes": {
+          "value": 1037481884259.336,
+          "unit": "bytes",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/speechcolab/gigaspeech"
+        },
+        "records": {
+          "value": 8315357,
+          "unit": "records",
+          "status": "reported",
+          "scope": "selected configuration, all published splits",
+          "source": "https://huggingface.co/api/datasets/speechcolab/gigaspeech"
+        },
+        "parquet_bytes": null,
+        "text_tokens": null,
+        "audio_hours": {
+          "value": 10000,
+          "unit": "hours",
+          "status": "reported_approximate",
+          "scope": "XL training audio",
+          "source": "https://huggingface.co/datasets/speechcolab/gigaspeech"
+        },
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "Gated; select xl once rather than adding overlapping xs/s/m/l subsets. Byte counts include dev/test; train audio hours exclude them."
+      ],
+      "splits": [
+        {
+          "name": "train",
+          "records": 8282988
+        },
+        {
+          "name": "validation",
+          "records": 6750
+        },
+        {
+          "name": "test",
+          "records": 25619
+        }
+      ]
+    },
+    {
+      "id": "audioset",
+      "name": "AudioSet",
+      "categories": [
+        "audio"
+      ],
+      "modalities": [
+        "audio"
+      ],
+      "url": "https://research.google.com/audioset/",
+      "hf": null,
+      "original_hf_id": null,
+      "payload": "metadata_with_external_media",
+      "access": {
+        "hub_gated": null,
+        "metadata_error": null,
+        "size_api_error": null
+      },
+      "metrics": {
+        "download_bytes": null,
+        "parquet_bytes": null,
+        "decoded_bytes": null,
+        "records": {
+          "value": 2084320,
+          "unit": "clips",
+          "status": "reported",
+          "scope": "publisher full labeled clip collection",
+          "source": "https://research.google.com/audioset/"
+        },
+        "text_tokens": null,
+        "audio_hours": {
+          "value": 5789.777777777777,
+          "unit": "hours",
+          "status": "derived_nominal",
+          "scope": "nominal 10 seconds per clip; assumes every clip available",
+          "source": "https://research.google.com/audioset/"
+        },
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "YouTube clips may no longer be available; annotations/features are not the full media download."
+      ]
+    },
+    {
+      "id": "llava-150k",
+      "name": "LLaVA Instruct 150K",
+      "categories": [
+        "vision"
+      ],
+      "modalities": [
+        "image",
+        "text"
+      ],
+      "url": "https://huggingface.co/datasets/liuhaotian/LLaVA-Instruct-150K",
+      "hf": {
+        "dataset": "liuhaotian/LLaVA-Instruct-150K",
+        "config": null,
+        "revision": "9d451dc7629cfe0469f6ae4432b765cd603d5fcb"
+      },
+      "original_hf_id": null,
+      "payload": "annotations_with_external_images",
+      "access": {
+        "hub_gated": false,
+        "metadata_error": null,
+        "size_api_error": null
+      },
+      "metrics": {
+        "download_bytes": {
+          "value": 228941895,
+          "unit": "bytes",
+          "status": "metadata_snapshot",
+          "scope": "llava_instruct_150k.json annotations only; excludes images",
+          "source": "https://huggingface.co/api/datasets/liuhaotian/LLaVA-Instruct-150K/tree/main?limit=1000"
+        },
+        "parquet_bytes": null,
+        "decoded_bytes": null,
+        "records": {
+          "value": 150000,
+          "unit": "conversations",
+          "status": "reported_approximate",
+          "scope": "publisher rounded dataset name, not audited JSON row count",
+          "source": "https://huggingface.co/datasets/liuhaotian/LLaVA-Instruct-150K"
+        },
+        "text_tokens": null,
+        "audio_hours": null,
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "Select llava_instruct_150k.json only; do not add overlapping 80k or component JSON files. COCO images are separate."
+      ]
+    },
+    {
+      "id": "sharegpt4v",
+      "name": "ShareGPT4V",
+      "categories": [
+        "vision"
+      ],
+      "modalities": [
+        "image",
+        "text"
+      ],
+      "url": "https://huggingface.co/datasets/Lin-Chen/ShareGPT4V",
+      "hf": {
+        "dataset": "Lin-Chen/ShareGPT4V",
+        "config": "ShareGPT4V",
+        "revision": "55d02b0bc53a2754095a14110dda6daedd95671d"
+      },
+      "original_hf_id": null,
+      "payload": "annotations_with_external_images",
+      "access": {
+        "hub_gated": false,
+        "metadata_error": null,
+        "size_api_error": null
+      },
+      "metrics": {
+        "parquet_bytes": {
+          "value": 50774875,
+          "unit": "bytes",
+          "status": "metadata_snapshot",
+          "scope": "selected configuration, all published splits; media only if embedded",
+          "source": "https://datasets-server.huggingface.co/size?dataset=Lin-Chen/ShareGPT4V"
+        },
+        "records": {
+          "value": 102025,
+          "unit": "records",
+          "status": "metadata_snapshot",
+          "scope": "selected configuration, all published splits",
+          "source": "https://datasets-server.huggingface.co/size?dataset=Lin-Chen/ShareGPT4V"
+        },
+        "download_bytes": null,
+        "decoded_bytes": null,
+        "text_tokens": null,
+        "audio_hours": null,
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "Select 102025-row instruction config; separate 1.25M-row PT configuration is not added. Images must be resolved separately."
+      ],
+      "splits": [
+        {
+          "name": "train",
+          "records": 102025
+        }
+      ]
+    },
+    {
+      "id": "webvid",
+      "name": "WebVid-10M",
+      "categories": [
+        "vision"
+      ],
+      "modalities": [
+        "video",
+        "text"
+      ],
+      "url": "https://m-bain.github.io/webvid-dataset/",
+      "hf": null,
+      "original_hf_id": null,
+      "payload": "metadata_with_external_media",
+      "access": {
+        "hub_gated": null,
+        "metadata_error": null,
+        "size_api_error": null
+      },
+      "metrics": {
+        "download_bytes": null,
+        "parquet_bytes": null,
+        "decoded_bytes": null,
+        "records": null,
+        "text_tokens": null,
+        "audio_hours": null,
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "10.7M is the original catalog claim; not reverified here. No byte/video count included until availability and subset are verified."
+      ]
+    },
+    {
+      "id": "openvid",
+      "name": "OpenVid-1M",
+      "categories": [
+        "vision"
+      ],
+      "modalities": [
+        "video",
+        "text"
+      ],
+      "url": "https://huggingface.co/datasets/nkp37/OpenVid-1M",
+      "hf": {
+        "dataset": "nkp37/OpenVid-1M",
+        "config": null,
+        "revision": "d8a63bd22989c80b5734ec2bb989f4e1b61a5807"
+      },
+      "original_hf_id": null,
+      "payload": "video_archives",
+      "access": {
+        "hub_gated": false,
+        "metadata_error": null,
+        "size_api_error": null
+      },
+      "metrics": {
+        "download_bytes": {
+          "value": 7492541697985,
+          "unit": "bytes",
+          "status": "metadata_snapshot",
+          "scope": "202 archive files for parts 0..185; video archives only",
+          "source": "https://huggingface.co/api/datasets/nkp37/OpenVid-1M/tree/main?limit=1000"
+        },
+        "parquet_bytes": null,
+        "decoded_bytes": null,
+        "records": null,
+        "text_tokens": null,
+        "audio_hours": null,
+        "images": null,
+        "videos": {
+          "value": 1000000,
+          "unit": "videos",
+          "status": "reported_approximate",
+          "scope": "publisher rounded corpus name",
+          "source": "https://huggingface.co/datasets/nkp37/OpenVid-1M"
+        }
+      },
+      "notes": [
+        "Corrected from inaccessible NKU-VIC/OpenVid-1M. Archive inventory includes OpenVid_part0 through part185, including split partaa/partab files. Excludes separately packaged overlapping OpenVidHD, model weights and extracted working copies. Requires archive/media adapter, not plain text ingestion."
+      ]
+    },
+    {
+      "id": "videoinstruct",
+      "name": "VideoInstruct-100K (Video-ChatGPT)",
+      "categories": [
+        "vision"
+      ],
+      "modalities": [
+        "video",
+        "text"
+      ],
+      "url": "https://huggingface.co/datasets/MBZUAI/VideoInstruct-100K",
+      "hf": {
+        "dataset": "MBZUAI/VideoInstruct-100K",
+        "config": null,
+        "revision": "ca593a4edea6bfb20cf009baf25c2f89c6c83471"
+      },
+      "original_hf_id": null,
+      "payload": "annotations_with_external_videos",
+      "access": {
+        "hub_gated": false,
+        "metadata_error": null,
+        "size_api_error": null
+      },
+      "metrics": {
+        "download_bytes": {
+          "value": 42443303,
+          "unit": "bytes",
+          "status": "metadata_snapshot",
+          "scope": "VideoInstruct100K.json annotations only",
+          "source": "https://huggingface.co/api/datasets/MBZUAI/VideoInstruct-100K/tree/main?limit=1000"
+        },
+        "parquet_bytes": null,
+        "decoded_bytes": null,
+        "records": {
+          "value": 100010,
+          "unit": "conversations",
+          "status": "reported",
+          "scope": "publisher dataset viewer",
+          "source": "https://huggingface.co/datasets/MBZUAI/VideoInstruct-100K"
+        },
+        "text_tokens": null,
+        "audio_hours": null,
+        "images": null,
+        "videos": null
+      },
+      "notes": [
+        "Corrected from inaccessible MBZUAI/Video-ChatGPT-100K. Annotation JSON does not include underlying video payload."
+      ]
+    }
+  ]
+}

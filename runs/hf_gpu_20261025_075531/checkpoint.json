@@ -1,8 +1,8 @@
 {
-  "step": 1800,
-  "best_val_loss": 0.05114303156733513,
-  "elapsed_secs": 362.9026844,
-  "lr": 0.00014000192703320335,
+  "step": 4000,
+  "best_val_loss": 0.03687652200460434,
+  "elapsed_secs": 897.7498516,
+  "lr": 0.00005,
   "rng": {
     "seed": [
       164,
@@ -39,11 +39,11 @@
       242
     ],
     "stream": 0,
-    "word_pos": 157140
+    "word_pos": 348332
   },
-  "model_file": "checkpoints/step-00001800-4932-1792915313314433100/model",
-  "optimizer_file": "checkpoints/step-00001800-4932-1792915313314433100/optimizer",
-  "config_file": "checkpoints/step-00001800-4932-1792915313314433100/model_config.json",
-  "stream_file": "checkpoints/step-00001800-4932-1792915313314433100/stream.json",
-  "validation_file": "checkpoints/step-00001800-4932-1792915313314433100/validation.json"
+  "model_file": "checkpoints/step-00004000-4932-1792915848025145200/model",
+  "optimizer_file": "checkpoints/step-00004000-4932-1792915848025145200/optimizer",
+  "config_file": "checkpoints/step-00004000-4932-1792915848025145200/model_config.json",
+  "stream_file": "checkpoints/step-00004000-4932-1792915848025145200/stream.json",
+  "validation_file": "checkpoints/step-00004000-4932-1792915848025145200/validation.json"
 }

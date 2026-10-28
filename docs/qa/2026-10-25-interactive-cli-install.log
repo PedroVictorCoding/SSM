@@ -1,0 +1,37 @@
+SAIL installable command and interactive wizard verification
+Date: 2026-10-25
+
+1. cargo check --offline
+   exit 0
+
+2. cargo check --offline --no-default-features --features wgpu
+   exit 0
+
+3. cargo test --offline --bin sail interactive::tests
+   exit 0; 6 passed, 0 failed
+   Covered cancellation, EOF, invalid-input retry, default run configuration,
+   default training configuration, argument construction, quoting and confirmation.
+
+4. Noninteractive smoke: ./target/debug/sail </dev/null
+   exit 0; printed help and did not wait for terminal input.
+
+5. Explicit cancellation: printf '0\n' | ./target/debug/sail setup
+   exit 0; printed "No command was run."
+
+6. Isolated current-source installation:
+   cargo install --path . --root <temporary-root> --offline --locked --force
+     --debug --no-default-features --features ndarray
+   exit 0; installed <temporary-root>/bin/sail
+   installed command reported: sail 0.1.0
+   installed `sail setup` accepted cancellation without dispatching a command.
+
+7. Installer syntax/static checks:
+   sh -n scripts/install.sh
+   bash -n scripts/install.sh
+   rustfmt --edition 2024 --check src/interactive.rs
+   git diff --check on owned files
+   all exited 0.
+
+The PowerShell installer was inspected but not executed because PowerShell was not
+available in the Linux review environment. The installation itself was exercised
+through the same cargo-install arguments in an isolated temporary root.

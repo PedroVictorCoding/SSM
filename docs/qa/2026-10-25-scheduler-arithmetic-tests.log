@@ -1,0 +1,15 @@
+   Compiling sail v0.1.0 (/home/pedro/Dev/SSM)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.25s
+     Running tests/test_resource_scheduling.rs (target/debug/deps/test_resource_scheduling-b405230d14ad4216)
+
+running 7 tests
+test test_budget_enforcement_and_oom_prevention ... ok
+test test_concurrent_load_benchmark_reports_latencies_and_underruns ... ok
+test test_dialogue_start_triggers_background_training_yield ... ok
+test test_cross_tier_total_overflow_is_rejected_without_mutating_reservations ... ok
+test test_invalid_os_reservation_returns_error_without_allocating ... ok
+test test_repeated_session_reloads_maintain_bounded_memory ... ok
+test test_tier_allocation_overflow_is_rejected_without_mutating_reservations ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -82,8 +82,9 @@ pub fn cpu_associative_scan_slice(a: &[f32], b: &[f32], out: &mut [f32]) {
     }
 }
 
-/// High-level associative scan dispatcher that routes to CubeCL hardware kernel
-/// or parallel chunked engine.
+/// Reference CPU associative scan implementation matching the CubeCL kernel operator.
+/// Note: Production tensor training and inference use the Burn tensor scans in `src/model/scan.rs`;
+/// this standalone CubeCL kernel is an experimental research kernel not currently wired into the autodiff graph.
 pub fn cubecl_associative_scan(a: &[f32], b: &[f32]) -> Vec<f32> {
     let mut out = vec![0.0f32; a.len()];
     cpu_associative_scan_slice(a, b, &mut out);

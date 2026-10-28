@@ -16,6 +16,7 @@ use rand::rngs::StdRng;
 
 use crate::data::Tokenizer;
 use crate::model::HybridLm;
+use crate::model::multimodal::OmnimodalLm;
 use crate::tool::ToolRegistry;
 
 #[derive(Clone, Debug)]
@@ -139,7 +140,7 @@ pub fn sample_logits(logits: &[f32], cfg: &SamplingConfig, rng: &mut impl Rng) -
     scaled.last().map(|&(i, _)| i as u32).unwrap_or(0)
 }
 
-fn row_to_vec<B: Backend>(logits: Tensor<B, 1>) -> Vec<f32> {
+pub fn row_to_vec<B: Backend>(logits: Tensor<B, 1>) -> Vec<f32> {
     logits
         .into_data()
         .convert::<f32>()
@@ -147,7 +148,7 @@ fn row_to_vec<B: Backend>(logits: Tensor<B, 1>) -> Vec<f32> {
         .expect("logits to vec")
 }
 
-fn tokens_tensor<B: Backend>(ids: &[u32], device: &B::Device) -> Tensor<B, 2, Int> {
+pub fn tokens_tensor<B: Backend>(ids: &[u32], device: &B::Device) -> Tensor<B, 2, Int> {
     let data: Vec<i64> = ids.iter().map(|&t| t as i64).collect();
     Tensor::from_data(TensorData::new(data, [1, ids.len()]), device)
 }
@@ -190,6 +191,54 @@ pub fn generate_stateful<B: Backend>(
         last = logits.reshape([vocab]);
         current_row = row_to_vec(last.clone());
     }
+    stats.decode_time = t1.elapsed();
+    stats.new_tokens = new_tokens;
+    stats.state_elements = state.num_elements();
+    (out, stats)
+}
+
+/// O(1)-per-token multimodal generation from interleaved prompt embeddings.
+pub fn generate_omnimodal_stateful<B: Backend>(
+    model: &OmnimodalLm<B>,
+    text_prompt: Option<&[u32]>,
+    audio_frames: Option<Tensor<B, 3>>,
+    vision_frame: Option<(Tensor<B, 4>, usize)>,
+    new_tokens: usize,
+    cfg: &SamplingConfig,
+    device: &B::Device,
+) -> (Vec<u32>, GenerationStats) {
+    let mut rng = StdRng::seed_from_u64(cfg.seed);
+    let mut stats = GenerationStats::default();
+
+    let text_tensor = text_prompt.map(|ids| tokens_tensor(ids, device));
+    let t0 = Instant::now();
+    let sequence = model.interleave_modalities(text_tensor, audio_frames, vision_frame);
+    let (logits, mut state) = model.prefill_embeddings(sequence);
+    stats.prefill_time = t0.elapsed();
+
+    let [_, len, vocab] = logits.dims();
+    let mut last: Tensor<B, 1> = logits.narrow(1, len - 1, 1).reshape([vocab]);
+    let mut current_row = row_to_vec(last.clone());
+
+    let t1 = Instant::now();
+    let mut out = Vec::with_capacity(new_tokens);
+
+    for i in 0..new_tokens {
+        let ent = compute_normalized_entropy(&current_row);
+        stats.token_entropies.push(ent);
+
+        let next = sample_logits(&current_row, cfg, &mut rng);
+        out.push(next);
+        if i + 1 == new_tokens {
+            break;
+        }
+        let token = Tensor::<B, 1, Int>::from_data(TensorData::new(vec![next as i64], [1]), device);
+        let (next_logits, new_state) = model.hybrid.step(token, state);
+        state = new_state;
+        last = next_logits.reshape([vocab]);
+        current_row = row_to_vec(last.clone());
+    }
+
     stats.decode_time = t1.elapsed();
     stats.new_tokens = new_tokens;
     stats.state_elements = state.num_elements();
